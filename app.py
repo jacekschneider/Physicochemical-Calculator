@@ -5,7 +5,7 @@ import pyqtgraph as pg
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QLabel, QPushButton, QFileDialog, QLineEdit, QVBoxLayout, QHBoxLayout, QDial
 from PyQt6.QtGui import QIcon
 from pathlib import Path
-
+import numpy as np
 
 
 class GraphWidget(QWidget):
@@ -26,6 +26,7 @@ class GraphWidget(QWidget):
         self.widget_graph.setBackground('k')
         self.pen_white_2 = pg.mkPen(color=(255, 255, 255), width=2)
         self.pen_yellow_1 = pg.mkPen(color=(255, 255, 0), width=1)
+        self.pen_red_2 = pg.mkPen(color=(255, 0, 0), width=2)
 
         self.widget_graph.setTitle("Example data", color="w", size="15pt")
         self.styles = {'color':'white', 'font-size':'15px'}
@@ -39,6 +40,15 @@ class GraphWidget(QWidget):
         
     def plot(self, x, y, pen, name):
         self.widget_graph.plot(x, y, pen=pen, name=name) 
+    
+    def plot_point(self, x:float, y:float):
+        try:
+            self.widget_graph.removeItem(self.point)
+        except AttributeError:
+            pass #JSCH! -> do something
+
+        self.point = self.widget_graph.plot(x, y, pen=None, symbol='o', symbolPen=self.pen_red_2, clickable=True)
+
         
     def update(self, path:str):
         self.path_data = path
@@ -60,6 +70,33 @@ class GraphWidget(QWidget):
         self.plot(self.x, self.y, self.pen_white_2, "y")
         self.plot(self.x, self.dy, self.pen_yellow_1, "dy")
         
+    def get(self, option:str):
+        if option == "x":
+            return self.x
+        elif option == "y":
+            return self.y
+        elif option == "dy":
+            return self.dy
+    
+        
+
+
+class PointSelectionWidget(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        layout_main = QGridLayout()
+        self.setLayout(layout_main)
+        self.setMaximumSize(400, 200)
+        
+        self.widget_knob = QDial()
+        self.widget_label_derrivative = QLabel("Derrivative value")
+        self.widget_lineedit_derrivative = QLineEdit("1")
+        self.widget_lineedit_derrivative.setMaximumWidth(100)
+        
+        layout_main.addWidget(self.widget_knob, 0,0)
+        layout_main.addWidget(self.widget_label_derrivative, 1, 0)
+        layout_main.addWidget(self.widget_lineedit_derrivative, 2, 0)
+        
         
 class DataLoadWidget(QWidget):
     def __init__(self, *args, **kwargs):
@@ -68,7 +105,6 @@ class DataLoadWidget(QWidget):
         self.setLayout(layout_main)
         self.setMaximumSize(400, 100)
 
-        
         # Widgets
         self.widget_button_fbrowse = QPushButton("Load data")
         self.widget_button_fbrowse.setFixedSize(80, 30)
@@ -76,39 +112,59 @@ class DataLoadWidget(QWidget):
         self.widget_label_filepath.setFixedHeight(20)
         self.widget_lineedit_filepath = QLineEdit()
         self.widget_lineedit_filepath.setFixedWidth(300)
+        self.widget_lineedit_filepath.setReadOnly(True)
         
-        layout_main.addWidget(self.widget_button_fbrowse, 0, 0)
-        layout_main.addWidget(self.widget_label_filepath, 1, 0)
-        layout_main.addWidget(self.widget_lineedit_filepath, 2,0 )
+        layout_main.addWidget(self.widget_button_fbrowse, 0, 0, 1 , 1)
+        layout_main.addWidget(self.widget_label_filepath, 2, 0)
+        layout_main.addWidget(self.widget_lineedit_filepath, 3, 0 )
+        
+        
         
         
 class CentralWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        layout_main = QHBoxLayout()
+        layout_main = QGridLayout()
         self.setLayout(layout_main)
         
         self.widget_graph = GraphWidget()
-        self.widget_load_Data = DataLoadWidget()
+        self.widget_load_data = DataLoadWidget()
+        self.widget_point_selection = PointSelectionWidget()
+        
         
         # Connections
-        self.widget_load_Data.widget_button_fbrowse.clicked.connect(self.open_file_dialog)
+        self.widget_load_data.widget_button_fbrowse.clicked.connect(self.open_file_dialog)
+        self.widget_point_selection.widget_lineedit_derrivative.editingFinished.connect(self.update)
 
         # Add widgets to the layout
-        layout_main.addWidget(self.widget_graph)
-        layout_main.addWidget(self.widget_load_Data)
+        layout_main.addWidget(self.widget_graph, 0, 0, 6, 5)
+        layout_main.addWidget(self.widget_load_data, 1, 6)
+        layout_main.addWidget(self.widget_point_selection, 3, 6)
 
+    # Multiple points!, Data must be loaded!, Move Updates to Threads  
+    def update(self):
+        derrivative_value = float(self.widget_point_selection.widget_lineedit_derrivative.text())
+        dy = self.widget_graph.get("dy")
+        y = self.widget_graph.get("y")
+        x = self.widget_graph.get("x")
+        dy_index = dy.index(self.closest_value(dy, derrivative_value))
+        self.widget_graph.plot_point([x[dy_index]], [y[dy_index]])
+        
+    def closest_value(self, input_list, input_value):
+        arr = np.asarray(input_list)
+        i = (np.abs(arr - input_value)).argmin()
+        return arr[i]
 
     def open_file_dialog(self):
         filename, ok = QFileDialog.getOpenFileName(
             self,
             caption="Select a File",
-            # !JSCH
+            # !JSCH -> change name
             filter="Some chemistry data (*.xlsx *.csv *.txt *.json)" 
         )
         if filename:
             path = Path(filename)
-            self.widget_load_Data.widget_lineedit_filepath.setText(str(path))
+            self.widget_load_data.widget_lineedit_filepath.setText(str(path))
             self.widget_graph.update(str(path))
             
         
