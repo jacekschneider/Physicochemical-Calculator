@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QLa
 from PyQt6.QtGui import QIcon
 from pathlib import Path
 import numpy as np
+import math
 
 
 class GraphWidget(QWidget):
@@ -15,6 +16,7 @@ class GraphWidget(QWidget):
         self.x = []
         self.y = []
         self.dy = []
+        self.points = []
         # Set options
         layout_main = QGridLayout(self)
         layout_main.setContentsMargins(20, 20, 0, 20)
@@ -42,14 +44,12 @@ class GraphWidget(QWidget):
         self.widget_graph.plot(x, y, pen=pen, name=name) 
     
     def plot_point(self, x:float, y:float):
-        try:
-            self.widget_graph.removeItem(self.point)
-        except AttributeError:
-            pass #JSCH! -> do something
+        self.points.append(self.widget_graph.plot(x, y, pen=None, symbol='o', symbolPen=self.pen_red_2, clickable=True))
 
-        self.point = self.widget_graph.plot(x, y, pen=None, symbol='o', symbolPen=self.pen_red_2, clickable=True)
-
-        
+    def delete_points(self):
+        while not len(self.points) == 0:
+            self.widget_graph.removeItem(self.points.pop())
+            
     def update(self, path:str):
         self.path_data = path
         data = pd.read_excel(self.path_data)
@@ -80,7 +80,6 @@ class GraphWidget(QWidget):
     
         
 
-
 class PointSelectionWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -88,14 +87,22 @@ class PointSelectionWidget(QWidget):
         self.setLayout(layout_main)
         self.setMaximumSize(400, 200)
         
-        self.widget_knob = QDial()
+        self.widget_dial = QDial()
         self.widget_label_derrivative = QLabel("Derrivative value")
         self.widget_lineedit_derrivative = QLineEdit("1")
         self.widget_lineedit_derrivative.setMaximumWidth(100)
         
-        layout_main.addWidget(self.widget_knob, 0,0)
+        layout_main.addWidget(self.widget_dial, 0,0)
         layout_main.addWidget(self.widget_label_derrivative, 1, 0)
         layout_main.addWidget(self.widget_lineedit_derrivative, 2, 0)
+        
+    def set_dial(self, min, max):
+        self.widget_dial.setMinimum(min)
+        self.widget_dial.setMaximum(max)
+        
+    def set(self, value):
+        self.widget_dial.setValue(int(value))
+        self.widget_lineedit_derrivative.setText(str(value))
         
         
 class DataLoadWidget(QWidget):
@@ -134,21 +141,36 @@ class CentralWidget(QWidget):
         
         # Connections
         self.widget_load_data.widget_button_fbrowse.clicked.connect(self.open_file_dialog)
-        self.widget_point_selection.widget_lineedit_derrivative.editingFinished.connect(self.update)
+        self.widget_point_selection.widget_lineedit_derrivative.editingFinished.connect(self.line_edit_update)
+        self.widget_point_selection.widget_dial.valueChanged.connect(self.dial_update)
 
         # Add widgets to the layout
         layout_main.addWidget(self.widget_graph, 0, 0, 6, 5)
         layout_main.addWidget(self.widget_load_data, 1, 6)
         layout_main.addWidget(self.widget_point_selection, 3, 6)
 
-    # Multiple points!, Data must be loaded!, Move Updates to Threads  
-    def update(self):
+    #Data must be loaded!, Move Updates to Threads  
+    
+    def line_edit_update(self):
         derrivative_value = float(self.widget_point_selection.widget_lineedit_derrivative.text())
+        self.update(derrivative_value)
+        
+    def dial_update(self):
+        derrivative_value = self.widget_point_selection.widget_dial.value()
+        self.update(derrivative_value)
+    
+    def update(self, derrivative_value):
         dy = self.widget_graph.get("dy")
         y = self.widget_graph.get("y")
         x = self.widget_graph.get("x")
-        dy_index = dy.index(self.closest_value(dy, derrivative_value))
-        self.widget_graph.plot_point([x[dy_index]], [y[dy_index]])
+        value = round(self.closest_value(dy, derrivative_value), 3)
+        dy_np = np.round(np.array(dy), 3)
+        dy_indices = np.where(dy_np == value)[0]
+        
+        self.widget_point_selection.set(value)
+        self.widget_graph.delete_points()
+        for dy_index in dy_indices:
+            self.widget_graph.plot_point([x[dy_index]], [y[dy_index]])
         
     def closest_value(self, input_list, input_value):
         arr = np.asarray(input_list)
@@ -166,6 +188,10 @@ class CentralWidget(QWidget):
             path = Path(filename)
             self.widget_load_data.widget_lineedit_filepath.setText(str(path))
             self.widget_graph.update(str(path))
+            
+            value_min = math.floor(min(self.widget_graph.get("dy")))
+            value_max = math.ceil(max(self.widget_graph.get("dy")))
+            self.widget_point_selection.set_dial(value_min, value_max)
             
         
 
