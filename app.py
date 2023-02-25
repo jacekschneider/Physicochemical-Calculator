@@ -17,11 +17,15 @@ class GraphWidget(QWidget):
         self.y = []
         self.dy = []
         self.points = []
+        self.texts = []
         # Set options
         layout_main = QGridLayout(self)
         layout_main.setContentsMargins(20, 20, 0, 20)
         self.setMinimumSize(800, 600)
         self.setLayout(layout_main)
+        
+ 
+        
         
         # Prepare widgets
         self.widget_graph = pg.PlotWidget(self)
@@ -37,18 +41,28 @@ class GraphWidget(QWidget):
         self.widget_graph.showGrid(x=True, y=True)
         self.widget_graph.addLegend()
         
+
+               
         # Add widgets to the layout
         layout_main.addWidget(self.widget_graph)
         
     def plot(self, x, y, pen, name):
         self.widget_graph.plot(x, y, pen=pen, name=name) 
     
-    def plot_point(self, x:float, y:float):
+    def plot_point(self, x:list, y:list):
+        pos_x = round(x[0], 3)
+        pos_y = round(y[0], 3)
         self.points.append(self.widget_graph.plot(x, y, pen=None, symbol='o', symbolPen=self.pen_red_2, clickable=True))
+        text = pg.TextItem(text="[{}, {}]".format(pos_x, pos_y), color=(0, 0, 0), border=pg.mkPen((255, 255, 0)), fill=pg.mkBrush((255, 255 , 0)))
+        text.setPos(pos_x, pos_y)
+        self.texts.append(text)
+        self.widget_graph.addItem(text)
 
     def delete_points(self):
         while not len(self.points) == 0:
             self.widget_graph.removeItem(self.points.pop())
+        while not len(self.texts) == 0:
+            self.widget_graph.removeItem(self.texts.pop())
             
     def update(self, path:str):
         self.path_data = path
