@@ -4,12 +4,57 @@ import qdarktheme
 import pyqtgraph as pg
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QLabel, QPushButton, QFileDialog, QLineEdit, QVBoxLayout, QHBoxLayout, QDial
 from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import QObject, QThread, pyqtSignal as Signal, pyqtSlot as Slot
 from pathlib import Path
 import numpy as np
 import math
 
+# TO DO LIST:
+# Clear plot
+# Clear plot if new data is being loaded
+# Disable PointSelection if no data available
+# Make points clickable
+# Stop Threads on exit
+# Disable load data button while loading data
+# Make a load progress bar (Extra)
+# Languages
+# Interpolate data ?
+
+
+# !JSCH -> upgrade data container
+class WorkerLoad(QObject):
+    signal_plot_data = Signal(dict)
+
+    @Slot(str)
+    def load(self, path):
+        plot_data = {}
+        data = pd.read_excel(path)
+        columns = data.columns.values.tolist()
+        x = data.iloc[:, 0]
+        y = data.iloc[:, 1]
+        x_prev = 0
+        y_prev = 0
+        dy = []
+        for (x_temp, y_temp) in zip(x, y):
+            try:
+                dy.append((y_temp - y_prev)/(x_temp - x_prev))
+            except ZeroDivisionError:
+                dy.append(0)
+            x_prev = x_temp
+            y_prev = y_temp
+ 
+        plot_data["x_label"]=columns[0]
+        plot_data["y_label"]=columns[1]
+        plot_data["x"]=x
+        plot_data["y"]=y
+        plot_data["dy"]=np.round(dy, 3)
+        self.signal_plot_data.emit(plot_data)
+    
+
 
 class GraphWidget(QWidget):
+    signal_load_requested = Signal(str)
+    signal_load_finished = Signal(bool)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.path_data = ""
@@ -25,8 +70,6 @@ class GraphWidget(QWidget):
         self.setLayout(layout_main)
         
  
-        
-        
         # Prepare widgets
         self.widget_graph = pg.PlotWidget(self)
         self.widget_graph.setBackground('k')
@@ -41,7 +84,17 @@ class GraphWidget(QWidget):
         self.widget_graph.showGrid(x=True, y=True)
         self.widget_graph.addLegend()
         
-
+        # Threads
+        self.worker_load = WorkerLoad()
+        self.worker_load_thread = QThread()
+        
+        self.worker_load.signal_plot_data.connect(self.update)
+        
+        self.signal_load_requested.connect(self.worker_load.load)
+        
+        self.worker_load.moveToThread(self.worker_load_thread)
+        self.worker_load_thread.start()
+        
                
         # Add widgets to the layout
         layout_main.addWidget(self.widget_graph)
@@ -64,25 +117,21 @@ class GraphWidget(QWidget):
         while not len(self.texts) == 0:
             self.widget_graph.removeItem(self.texts.pop())
             
-    def update(self, path:str):
-        self.path_data = path
-        data = pd.read_excel(self.path_data)
-        columns = data.columns.values.tolist()
-        self.widget_graph.setLabel('left', columns[1], **self.styles)
-        self.widget_graph.setLabel('bottom', columns[0], **self.styles)
-        self.x = data.iloc[:, 0]
-        self.y = data.iloc[:, 1]
-        x_prev = 0
-        y_prev = 0
-        for (x, y) in zip(self.x, self.y):
-            try:
-                self.dy.append((y - y_prev)/(x - x_prev))
-            except ZeroDivisionError:
-                self.dy.append(0)
-            x_prev = x
-            y_prev = y
+    def request(self, path:str):
+        self.signal_load_requested.emit(path)
+            
+    def update(self, data:dict):
+        self.x_label = data["x_label"]
+        self.y_label = data["y_label"]
+        self.x = data["x"]
+        self.y = data["y"]
+        self.dy = data["dy"]
+        self.widget_graph.setLabel('left', self.y_label, **self.styles)
+        self.widget_graph.setLabel('bottom', self.x_label, **self.styles)
         self.plot(self.x, self.y, self.pen_white_2, "y")
         self.plot(self.x, self.dy, self.pen_yellow_1, "dy")
+        
+        self.signal_load_finished.emit(True)
         
     def get(self, option:str):
         if option == "x":
@@ -93,7 +142,6 @@ class GraphWidget(QWidget):
             return self.dy
     
         
-
 class PointSelectionWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -138,9 +186,7 @@ class DataLoadWidget(QWidget):
         layout_main.addWidget(self.widget_button_fbrowse, 0, 0, 1 , 1)
         layout_main.addWidget(self.widget_label_filepath, 2, 0)
         layout_main.addWidget(self.widget_lineedit_filepath, 3, 0 )
-        
-        
-        
+          
         
 class CentralWidget(QWidget):
     def __init__(self, *args, **kwargs):
@@ -152,18 +198,18 @@ class CentralWidget(QWidget):
         self.widget_load_data = DataLoadWidget()
         self.widget_point_selection = PointSelectionWidget()
         
-        
         # Connections
         self.widget_load_data.widget_button_fbrowse.clicked.connect(self.open_file_dialog)
         self.widget_point_selection.widget_lineedit_derrivative.editingFinished.connect(self.line_edit_update)
         self.widget_point_selection.widget_dial.valueChanged.connect(self.dial_update)
+        self.widget_graph.signal_load_finished.connect(self.dial_set)
 
         # Add widgets to the layout
         layout_main.addWidget(self.widget_graph, 0, 0, 6, 5)
         layout_main.addWidget(self.widget_load_data, 1, 6)
         layout_main.addWidget(self.widget_point_selection, 3, 6)
 
-    #Data must be loaded!, Move Updates to Threads  
+    #!JSCH -> Move Point update to Thread  
     
     def line_edit_update(self):
         derrivative_value = float(self.widget_point_selection.widget_lineedit_derrivative.text())
@@ -173,12 +219,17 @@ class CentralWidget(QWidget):
         derrivative_value = self.widget_point_selection.widget_dial.value()
         self.update(derrivative_value)
     
+    def dial_set(self):
+        value_min = math.floor(min(self.widget_graph.get("dy")))
+        value_max = math.ceil(max(self.widget_graph.get("dy")))
+        self.widget_point_selection.set_dial(value_min, value_max)
+    
     def update(self, derrivative_value):
         dy = self.widget_graph.get("dy")
         y = self.widget_graph.get("y")
         x = self.widget_graph.get("x")
         value = round(self.closest_value(dy, derrivative_value), 3)
-        dy_np = np.round(np.array(dy), 3)
+        dy_np = np.array(dy)
         dy_indices = np.where(dy_np == value)[0]
         
         self.widget_point_selection.set(value)
@@ -201,11 +252,7 @@ class CentralWidget(QWidget):
         if filename:
             path = Path(filename)
             self.widget_load_data.widget_lineedit_filepath.setText(str(path))
-            self.widget_graph.update(str(path))
-            
-            value_min = math.floor(min(self.widget_graph.get("dy")))
-            value_max = math.ceil(max(self.widget_graph.get("dy")))
-            self.widget_point_selection.set_dial(value_min, value_max)
+            self.widget_graph.request(str(path))
             
         
 
@@ -223,7 +270,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(CentralWidget())
 
         self.show()
-
 
 
 if __name__ == '__main__':
