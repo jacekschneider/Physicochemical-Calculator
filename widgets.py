@@ -167,6 +167,7 @@ class DataLoadWidget(QWidget):
         
              
 class CentralWidget(QWidget):
+    signal_status = Signal(str, int)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         layout_main = QGridLayout()
@@ -198,6 +199,7 @@ class CentralWidget(QWidget):
     def dial_update(self):
         derrivative_value = self.widget_point_selection.widget_dial.value()
         self.update(derrivative_value)
+        self.signal_status.emit("Dial updated.", 1000)
     
     def afterload(self):
         value_min = math.floor(min(self.widget_graph.get("dy")))
@@ -205,6 +207,7 @@ class CentralWidget(QWidget):
         self.widget_point_selection.set_dial(value_min, value_max)
         self.widget_point_selection.setDisabled(False)
         self.widget_load_data.widget_button_clear.setDisabled(False)
+        self.signal_status.emit("Data loaded successfully.", 3000)
     
     def update(self, derrivative_value):
         dy = self.widget_graph.get("dy")
@@ -224,6 +227,7 @@ class CentralWidget(QWidget):
         self.widget_graph.clear() 
         self.widget_load_data.widget_lineedit_filepath.setText("")
         self.widget_load_data.widget_button_clear.setDisabled(True)
+        self.signal_status.emit("Data removed successfully.", 3000)
 
 
     def open_file_dialog(self):
@@ -239,75 +243,3 @@ class CentralWidget(QWidget):
             self.widget_graph.request(str(path))
             
             
-class CentralWidget(QWidget):
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        layout_main = QGridLayout()
-        self.setLayout(layout_main)
-        
-        self.widget_graph = GraphWidget()
-        self.widget_load_data = DataLoadWidget()
-        self.widget_point_selection = PointSelectionWidget()
-        self.widget_point_selection.setDisabled(True)
-        
-        # Connections
-        self.widget_load_data.widget_button_fbrowse.clicked.connect(self.open_file_dialog)
-        self.widget_load_data.widget_button_clear.clicked.connect(self.clear)
-        self.widget_point_selection.widget_lineedit_derrivative.editingFinished.connect(self.line_edit_update)
-        self.widget_point_selection.widget_dial.valueChanged.connect(self.dial_update)
-        self.widget_graph.signal_load_finished.connect(self.afterload)
-
-        # Add widgets to the layout
-        layout_main.addWidget(self.widget_graph, 0, 0, 6, 5)
-        layout_main.addWidget(self.widget_load_data, 1, 6)
-        layout_main.addWidget(self.widget_point_selection, 3, 6)
-
-    #!JSCH -> Move Point update to Thread  
-    
-    def line_edit_update(self):
-        derrivative_value = float(self.widget_point_selection.widget_lineedit_derrivative.text())
-        self.update(derrivative_value)
-        
-    def dial_update(self):
-        derrivative_value = self.widget_point_selection.widget_dial.value()
-        self.update(derrivative_value)
-    
-    def afterload(self):
-        value_min = math.floor(min(self.widget_graph.get("dy")))
-        value_max = math.ceil(max(self.widget_graph.get("dy")))
-        self.widget_point_selection.set_dial(value_min, value_max)
-        self.widget_point_selection.setDisabled(False)
-        self.widget_load_data.widget_button_clear.setDisabled(False)
-    
-    def update(self, derrivative_value):
-        dy = self.widget_graph.get("dy")
-        y = self.widget_graph.get("y")
-        x = self.widget_graph.get("x")
-        value = round(closest_value(dy, derrivative_value), 3)
-        dy_np = np.array(dy)
-        dy_indices = np.where(dy_np == value)[0]
-        
-        self.widget_point_selection.set(value)
-        self.widget_graph.delete_points()
-        for dy_index in dy_indices:
-            self.widget_graph.plot_point([x[dy_index]], [y[dy_index]])
-        
-    def clear(self):
-        self.widget_point_selection.setDisabled(True)
-        self.widget_graph.clear() 
-        self.widget_load_data.widget_lineedit_filepath.setText("")
-        self.widget_load_data.widget_button_clear.setDisabled(True)
-
-
-    def open_file_dialog(self):
-        filename, ok = QFileDialog.getOpenFileName(
-            self,
-            caption="Select a File",
-            # !JSCH -> change name
-            filter="Polimer data (*.xlsx *.csv *.txt *.json)" 
-        )
-        if filename:
-            path = Path(filename)
-            self.widget_load_data.widget_lineedit_filepath.setText(str(path))
-            self.widget_graph.request(str(path))
