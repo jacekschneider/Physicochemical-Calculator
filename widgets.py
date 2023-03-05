@@ -1,7 +1,3 @@
-import os
-import sys
-sys.path.insert(1, os.getcwd()+'\\workers')
-
 import math
 import numpy as np
 import pyqtgraph as pg
@@ -9,7 +5,7 @@ from pathlib import Path
 from PyQt6.QtWidgets import QWidget, QGridLayout, QDial, QLineEdit, QLabel, QPushButton, QFileDialog
 from PyQt6.QtCore import pyqtSignal as Signal, QThread
 from workers import LoadWorker
-from utils import closest_value
+from utils import closest_value, tr
 
 
 class GraphWidget(QWidget):
@@ -115,6 +111,9 @@ class GraphWidget(QWidget):
         elif option == "dy":
             return self.dy
         
+    def retranslate(self):
+        pass
+        
         
 class PointSelectionWidget(QWidget):
     def __init__(self, *args, **kwargs):
@@ -124,13 +123,15 @@ class PointSelectionWidget(QWidget):
         self.setMaximumSize(400, 200)
         
         self.widget_dial = QDial()
-        self.widget_label_derrivative = QLabel("Derrivative value")
-        self.widget_lineedit_derrivative = QLineEdit("1")
+        self.widget_label_derrivative = QLabel()
+        self.widget_lineedit_derrivative = QLineEdit("0")
         self.widget_lineedit_derrivative.setMaximumWidth(100)
         
         layout_main.addWidget(self.widget_dial, 0,0)
         layout_main.addWidget(self.widget_label_derrivative, 1, 0)
         layout_main.addWidget(self.widget_lineedit_derrivative, 2, 0)
+        
+        self.retranslate()
         
     def set_dial(self, min, max):
         self.widget_dial.setMinimum(min)
@@ -139,6 +140,9 @@ class PointSelectionWidget(QWidget):
     def set(self, value):
         self.widget_dial.setValue(int(value))
         self.widget_lineedit_derrivative.setText(str(value))
+    
+    def retranslate(self):
+        self.widget_label_derrivative.setText(tr("Derrivative value"))
         
             
 class DataLoadWidget(QWidget):
@@ -149,12 +153,12 @@ class DataLoadWidget(QWidget):
         self.setMaximumSize(400, 100)
 
         # Widgets
-        self.widget_button_fbrowse = QPushButton("Load data")
+        self.widget_button_fbrowse = QPushButton()
         self.widget_button_fbrowse.setFixedSize(80, 30)
-        self.widget_button_clear = QPushButton("Clear data")
+        self.widget_button_clear = QPushButton()
         self.widget_button_clear.setDisabled(True)
         self.widget_button_clear.setFixedSize(80, 30)
-        self.widget_label_filepath = QLabel('File: ')
+        self.widget_label_filepath = QLabel()
         self.widget_label_filepath.setFixedHeight(20)
         self.widget_lineedit_filepath = QLineEdit()
         self.widget_lineedit_filepath.setFixedWidth(300)
@@ -165,6 +169,13 @@ class DataLoadWidget(QWidget):
         layout_main.addWidget(self.widget_label_filepath, 1, 0, 2, 2)
         layout_main.addWidget(self.widget_lineedit_filepath, 3, 0 , 4, 2)
         
+        self.retranslate()
+        
+    def retranslate(self):
+        self.widget_button_fbrowse.setText(tr("Load data"))
+        self.widget_button_clear.setText(tr("Clear data"))
+        self.widget_label_filepath.setText(tr("File:"))
+             
              
 class CentralWidget(QWidget):
     signal_status = Signal(str, int)
@@ -199,7 +210,7 @@ class CentralWidget(QWidget):
     def dial_update(self):
         derrivative_value = self.widget_point_selection.widget_dial.value()
         self.update(derrivative_value)
-        self.signal_status.emit("Dial updated.", 1000)
+        self.signal_status.emit(tr("Dial updated."), 1000)
     
     def afterload(self):
         value_min = math.floor(min(self.widget_graph.get("dy")))
@@ -207,7 +218,7 @@ class CentralWidget(QWidget):
         self.widget_point_selection.set_dial(value_min, value_max)
         self.widget_point_selection.setDisabled(False)
         self.widget_load_data.widget_button_clear.setDisabled(False)
-        self.signal_status.emit("Data loaded successfully.", 3000)
+        self.signal_status.emit(tr("Data loaded successfully."), 3000)
     
     def update(self, derrivative_value):
         dy = self.widget_graph.get("dy")
@@ -227,19 +238,24 @@ class CentralWidget(QWidget):
         self.widget_graph.clear() 
         self.widget_load_data.widget_lineedit_filepath.setText("")
         self.widget_load_data.widget_button_clear.setDisabled(True)
-        self.signal_status.emit("Data removed successfully.", 3000)
+        self.signal_status.emit(tr("Data removed successfully."), 3000)
 
 
     def open_file_dialog(self):
         filename, ok = QFileDialog.getOpenFileName(
             self,
-            caption="Select a File",
+            caption=tr("Select a File"),
             # !JSCH -> change name
-            filter="Polimer data (*.xlsx *.csv *.txt *.json)" 
+            filter=tr("Polimer data")+" (*.xlsx *.csv *.txt *.json)" 
         )
         if filename:
             path = Path(filename)
             self.widget_load_data.widget_lineedit_filepath.setText(str(path))
             self.widget_graph.request(str(path))
+            
+    def retranslate(self):
+        self.widget_graph.retranslate()
+        self.widget_load_data.retranslate()
+        self.widget_point_selection.retranslate()
             
             
