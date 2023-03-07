@@ -1,17 +1,16 @@
 import math
 import numpy as np
 import pyqtgraph as pg
-import pandas as pd
 from pathlib import Path
 from PyQt6.QtWidgets import QWidget, QGridLayout, QDial, QLineEdit, QLabel, QPushButton, QFileDialog
 from PyQt6.QtCore import pyqtSignal as Signal, QThread
 from PyQt6.QtGui import QIntValidator
 from workers import LoadWorker
-from utils import closest_value, tr, verify
+from utils import closest_value, tr
 
 
 class GraphWidget(QWidget):
-    signal_load_requested = Signal(str, pd.DataFrame)
+    signal_load_requested = Signal(str)
     signal_load_finished = Signal(bool)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -89,8 +88,8 @@ class GraphWidget(QWidget):
         self.widget_graph.setLabel('bottom', 'x', **self.styles)
         
             
-    def request(self, path:str, data:pd.DataFrame):
-        self.signal_load_requested.emit(path, data)
+    def request(self, path:str):
+        self.signal_load_requested.emit(path)
             
     def update(self, data:dict):
         self.clear()
@@ -256,10 +255,8 @@ class CentralWidget(QWidget):
         )
         if filename:
             path = Path(filename)
-            data = pd.read_excel(path)
-            verify(data)
             self.widget_load_data.widget_lineedit_filepath.setText(str(path))
-            self.widget_graph.request(str(path), data)
+            self.widget_graph.request(str(path))
             
     def retranslate(self):
         self.widget_graph.retranslate()

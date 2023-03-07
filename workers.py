@@ -1,15 +1,20 @@
 import numpy as np
 import pandas as pd
 from PyQt6.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QObject
-
+from utils import verify
 
 # !JSCH -> upgrade with data interpolation 
 class LoadWorker(QObject):
     signal_data_plot = Signal(dict)
     signal_data_error = Signal(bool)
-    @Slot(str, pd.DataFrame)
-    def load(self, path, data):
+    @Slot(str)
+    def load(self, path):
         plot_data = {}
+        data = pd.read_excel(path)
+        try:
+            verify(data)
+        except AssertionError:
+            pass #!JSCH
         columns = data.columns.values.tolist()
         x = data.iloc[:, 0]
         y = data.iloc[:, 1]
