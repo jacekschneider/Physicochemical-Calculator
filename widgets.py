@@ -1,15 +1,17 @@
 import math
 import numpy as np
 import pyqtgraph as pg
+import pandas as pd
 from pathlib import Path
 from PyQt6.QtWidgets import QWidget, QGridLayout, QDial, QLineEdit, QLabel, QPushButton, QFileDialog
 from PyQt6.QtCore import pyqtSignal as Signal, QThread
+from PyQt6.QtGui import QIntValidator
 from workers import LoadWorker
-from utils import closest_value, tr
+from utils import closest_value, tr, verify
 
 
 class GraphWidget(QWidget):
-    signal_load_requested = Signal(str)
+    signal_load_requested = Signal(str, pd.DataFrame)
     signal_load_finished = Signal(bool)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -34,7 +36,6 @@ class GraphWidget(QWidget):
         self.pen_yellow_1 = pg.mkPen(color=(255, 255, 0), width=1)
         self.pen_red_2 = pg.mkPen(color=(255, 0, 0), width=2)
 
-        self.widget_graph.setTitle("Chemistry data", color="w", size="15pt")
         self.styles = {'color':'white', 'font-size':'15px'}
         self.widget_graph.setLabel('left', 'y', **self.styles)
         self.widget_graph.setLabel('bottom', 'x', **self.styles)
@@ -45,7 +46,7 @@ class GraphWidget(QWidget):
         self.worker_load = LoadWorker()
         self.worker_load_thread = QThread()
         
-        self.worker_load.signal_plot_data.connect(self.update)
+        self.worker_load.signal_data_plot.connect(self.update)
         
         self.signal_load_requested.connect(self.worker_load.load)
         
@@ -53,9 +54,10 @@ class GraphWidget(QWidget):
         self.worker_load_thread.finished.connect(self.worker_load_thread.deleteLater)
         self.worker_load_thread.start()
         
-               
         # Add widgets to the layout
         layout_main.addWidget(self.widget_graph)
+        
+        self.retranslate()
         
     def plot(self, x, y, pen, name):
         self.traces.append(self.widget_graph.plot(x, y, pen=pen, name=name)) 
@@ -82,12 +84,13 @@ class GraphWidget(QWidget):
     def clear(self):
         self.delete_traces()
         self.delete_points()
+        self.retranslate()
         self.widget_graph.setLabel('left', 'y', **self.styles)
         self.widget_graph.setLabel('bottom', 'x', **self.styles)
         
             
-    def request(self, path:str):
-        self.signal_load_requested.emit(path)
+    def request(self, path:str, data:pd.DataFrame):
+        self.signal_load_requested.emit(path, data)
             
     def update(self, data:dict):
         self.clear()
@@ -96,6 +99,8 @@ class GraphWidget(QWidget):
         self.x = data["x"]
         self.y = data["y"]
         self.dy = data["dy"]
+        self.title = data["title"]
+        self.widget_graph.setTitle(self.title, color="w", size="15pt")
         self.widget_graph.setLabel('left', self.y_label, **self.styles)
         self.widget_graph.setLabel('bottom', self.x_label, **self.styles)
         self.plot(self.x, self.y, self.pen_white_2, "y")
@@ -112,7 +117,7 @@ class GraphWidget(QWidget):
             return self.dy
         
     def retranslate(self):
-        pass
+        self.widget_graph.setTitle(tr("Data not loaded"), color="w", size="15pt")
         
         
 class PointSelectionWidget(QWidget):
@@ -125,6 +130,7 @@ class PointSelectionWidget(QWidget):
         self.widget_dial = QDial()
         self.widget_label_derrivative = QLabel()
         self.widget_lineedit_derrivative = QLineEdit("0")
+        self.widget_lineedit_derrivative.setValidator(QIntValidator())
         self.widget_lineedit_derrivative.setMaximumWidth(100)
         
         layout_main.addWidget(self.widget_dial, 0,0)
@@ -154,10 +160,10 @@ class DataLoadWidget(QWidget):
 
         # Widgets
         self.widget_button_fbrowse = QPushButton()
-        self.widget_button_fbrowse.setFixedSize(80, 30)
+        self.widget_button_fbrowse.setFixedSize(100, 30)
         self.widget_button_clear = QPushButton()
         self.widget_button_clear.setDisabled(True)
-        self.widget_button_clear.setFixedSize(80, 30)
+        self.widget_button_clear.setFixedSize(100, 30)
         self.widget_label_filepath = QLabel()
         self.widget_label_filepath.setFixedHeight(20)
         self.widget_lineedit_filepath = QLineEdit()
@@ -250,8 +256,10 @@ class CentralWidget(QWidget):
         )
         if filename:
             path = Path(filename)
+            data = pd.read_excel(path)
+            verify(data)
             self.widget_load_data.widget_lineedit_filepath.setText(str(path))
-            self.widget_graph.request(str(path))
+            self.widget_graph.request(str(path), data)
             
     def retranslate(self):
         self.widget_graph.retranslate()

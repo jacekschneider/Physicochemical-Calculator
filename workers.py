@@ -5,12 +5,11 @@ from PyQt6.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QObject
 
 # !JSCH -> upgrade with data interpolation 
 class LoadWorker(QObject):
-    signal_plot_data = Signal(dict)
-
-    @Slot(str)
-    def load(self, path):
+    signal_data_plot = Signal(dict)
+    signal_data_error = Signal(bool)
+    @Slot(str, pd.DataFrame)
+    def load(self, path, data):
         plot_data = {}
-        data = pd.read_excel(path)
         columns = data.columns.values.tolist()
         x = data.iloc[:, 0]
         y = data.iloc[:, 1]
@@ -24,10 +23,12 @@ class LoadWorker(QObject):
                 dy.append(0)
             x_prev = x_temp
             y_prev = y_temp
- 
+        # extract file name
+        title = path.split('\\')[-1].split('.')[0]
+        plot_data["title"] = title
         plot_data["x_label"]=columns[0]
         plot_data["y_label"]=columns[1]
         plot_data["x"]=x
         plot_data["y"]=y
         plot_data["dy"]=np.round(dy, 3)
-        self.signal_plot_data.emit(plot_data)
+        self.signal_data_plot.emit(plot_data)

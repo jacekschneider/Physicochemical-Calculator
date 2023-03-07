@@ -11,10 +11,9 @@ from PyQt6.QtCore import QTranslator
 # TO DO LIST:
 
 # Make points clickable
+# Add another file formats to load
 # Verify load data
 # Make a load progress bar (Extra)
-# Simplify language translation
-# Validate derrivative value
 # Interpolate data ?
 
 
@@ -43,9 +42,9 @@ class MainWindow(QMainWindow):
         menu_bar = self.menuBar()
         menu_language = menu_bar.addMenu('&Language')
         
-        action_en = QAction(QIcon("icons/us.png"), '&'+tr("English"), self)
-        action_de = QAction(QIcon("icons/de.png"), '&'+tr("German"), self)
-        action_pl = QAction(QIcon("icons/pl.png"), '&'+tr("Polish"), self)
+        action_en = QAction(QIcon("icons/us.png"), "&English", self)
+        action_de = QAction(QIcon("icons/de.png"), "&Deutsch", self)
+        action_pl = QAction(QIcon("icons/pl.png"), "&Polski", self)
         action_en.triggered.connect(self.set_en)
         action_de.triggered.connect(self.set_de)
         action_pl.triggered.connect(self.set_pl)
