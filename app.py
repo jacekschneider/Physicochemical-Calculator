@@ -26,7 +26,7 @@ class MainWindow(QMainWindow):
         # Set options
         self.setWindowTitle("PBL Project")
         self.setWindowIcon(QIcon("icons/chemistry_1.png"))
-        loadUi("mainwindow.ui", self)
+        loadUi("mainwindow_v2.ui", self)
         
         self.show()
 
