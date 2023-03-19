@@ -8,7 +8,6 @@ import pyqtgraph as pg
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
         loadUi("UI/ui_main.ui", self)
         self.show()
         

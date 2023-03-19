@@ -1,31 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>WidgetCAC</class>
- <widget class="QWidget" name="WidgetCAC">
+ <class>WidgetData</class>
+ <widget class="QWidget" name="WidgetData">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>944</width>
-    <height>451</height>
+    <width>892</width>
+    <height>686</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>600</width>
-    <height>400</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>16777215</width>
-    <height>16777215</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
     <widget class="QWidget" name="widget" native="true">
      <property name="minimumSize">
@@ -63,7 +51,7 @@
              </size>
             </property>
             <property name="text">
-             <string>Method</string>
+             <string>Concentration</string>
             </property>
            </widget>
           </item>
@@ -115,18 +103,18 @@
            <widget class="QLabel" name="label_4">
             <property name="minimumSize">
              <size>
-              <width>140</width>
+              <width>120</width>
               <height>20</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>140</width>
+              <width>120</width>
               <height>20</height>
              </size>
             </property>
             <property name="text">
-             <string>Breaking Point Number</string>
+             <string>Window Width</string>
             </property>
            </widget>
           </item>
@@ -170,26 +158,66 @@
            <number>0</number>
           </property>
           <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="maximumSize">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>I1</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit">
+              <property name="maximumSize">
+               <size>
+                <width>80</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <property name="spacing">
              <number>6</number>
             </property>
             <item>
-             <widget class="QPushButton" name="pushButton">
-              <property name="minimumSize">
-               <size>
-                <width>100</width>
-                <height>30</height>
-               </size>
-              </property>
+             <widget class="QLabel" name="label_3">
               <property name="maximumSize">
                <size>
-                <width>100</width>
-                <height>30</height>
+                <width>10</width>
+                <height>20</height>
                </size>
               </property>
               <property name="text">
-               <string>Set Default</string>
+               <string>I2</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_2">
+              <property name="maximumSize">
+               <size>
+                <width>80</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -216,14 +244,7 @@
     </widget>
    </item>
    <item>
-    <widget class="PlotWidget" name="graph" native="true">
-     <property name="minimumSize">
-      <size>
-       <width>600</width>
-       <height>400</height>
-      </size>
-     </property>
-    </widget>
+    <widget class="PlotWidget" name="graph" native="true"/>
    </item>
   </layout>
  </widget>

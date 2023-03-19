@@ -21,3 +21,9 @@ class WidgetCAC(QWidget):
         super().__init__(*args, **kwargs)
         loadUi("UI/ui_cac.ui", self)
         self.graph.showGrid(x=True, y=True)
+        
+class WidgetData(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        loadUi("UI/ui_data.ui", self)
+        self.graph.showGrid(x=True, y=True)
