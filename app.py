@@ -8,15 +8,6 @@ from utils import tr
 from PyQt6.QtCore import QTranslator
 
 
-# TO DO LIST:
-
-# Make points clickable
-# Add another file formats to load
-# Verify load data
-# Make a load progress bar (Extra)
-# Interpolate data ?
-
-
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
