@@ -78,7 +78,7 @@
     </widget>
    </item>
    <item row="0" column="2" colspan="2">
-    <widget class="QPushButton" name="bd_clear_data">
+    <widget class="QPushButton" name="pb_clear_data">
      <property name="minimumSize">
       <size>
        <width>100</width>

@@ -7,7 +7,7 @@ from PyQt6.QtCore import pyqtSignal as Signal, QThread
 from PyQt6.QtGui import QIntValidator
 from PyQt6.uic.load_ui import loadUi
 from workers import LoadWorker
-from utils import get_data
+from utils import get_data, pens
 
         
             
@@ -36,18 +36,29 @@ class WidgetData(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         loadUi("UI/ui_data.ui", self)
+        
+        #Graph Items
+        self.items_plot = []
+        
         self.graph.showGrid(x=True, y=True)
-    
-    def load_data(self, path:str):
+        self.legend = self.graph.addLegend(labelTextColor="w", labelTextSize="12")
+        self.legend.anchor((0,0),(0.7,0.1))
+
+    def load(self, path:str):
         data = get_data(path)
         data.dropna(how="all", axis="index", inplace=True)
         x = data.index.values
-        for column in data:
+        for (index, column) in enumerate(data):
             title = column
             y= data[column].values
-            self.draw(x, y, title)
+            self.draw(x, y, title, pen_index=index)
               
-    def draw(self, x:np.array, y:np.array, title:str):
-        color = np.random.randint(255, size=(3))
-        print(color)
-        self.graph.plot(x,y, pen=None, symbol='o', symbolPen=pg.mkPen(color), symbolBursh=pg.mkBrush(180,180,180))
+    def draw(self, x:np.array, y:np.array, title:str, pen_index:int=0):
+        item_plot = self.graph.plot(x,y,pen=None, symbol='o', symbolPen=pens[pen_index%len(pens)],symbolBrush=pg.mkBrush(0,0,0),  symbolSize=7, name=f"concentration = {title}")
+        self.items_plot.append(item_plot)
+        
+    def clear(self):
+        for item in self.items_plot:
+            self.graph.removeItem(item)
+        while len(self.items_plot):
+            self.items_plot.pop()

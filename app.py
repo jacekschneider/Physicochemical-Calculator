@@ -11,7 +11,8 @@ class MainWindow(QMainWindow):
         loadUi("UI/ui_main.ui", self)
         self.show()
         
-        self.widget_navigation.emit_path_folder.connect(self.widget_data.load_data)
+        self.widget_navigation.emit_path_folder.connect(self.widget_data.load)
+        self.widget_navigation.pb_clear_data.clicked.connect(self.widget_data.clear)
         
         
 if __name__ == '__main__':

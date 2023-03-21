@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import pyqtgraph as pg
 import re
 from PyQt6.QtCore import QCoreApplication
 from pathlib import Path
@@ -74,3 +75,7 @@ def get_peaks(data: pd.DataFrame, peak1: int = 373, peak2: int = 384, window: in
 
     return peaks.T
 
+colors = "rgbwymc"
+pens = []
+for color in colors:
+    pens.append(pg.mkPen(color))
