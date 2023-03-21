@@ -11,6 +11,8 @@ class MainWindow(QMainWindow):
         loadUi("UI/ui_main.ui", self)
         self.show()
         
+        self.widget_navigation.emit_path_folder.connect(self.widget_data.load_data)
+        
         
 if __name__ == '__main__':
     app = QApplication(sys.argv)
