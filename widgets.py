@@ -43,6 +43,9 @@ class WidgetData(QWidget):
         self.graph.showGrid(x=True, y=True)
         self.legend = self.graph.addLegend(labelTextColor="w", labelTextSize="12")
         self.legend.anchor((0,0),(0.7,0.1))
+        self.styles = {'color':'white', 'font-size':'15px'}
+        self.graph.setLabel('bottom', 'Wavelength, nm', **self.styles)
+        self.graph.setLabel('left', 'Intensity', **self.styles)
 
     def load(self, path:str):
         data = get_data(path)
