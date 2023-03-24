@@ -6,144 +6,122 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>315</width>
-    <height>200</height>
+    <width>255</width>
+    <height>349</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>315</width>
-    <height>200</height>
+    <width>255</width>
+    <height>0</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>315</width>
-    <height>200</height>
+    <width>255</width>
+    <height>16777215</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <property name="sizeConstraint">
-    <enum>QLayout::SetFixedSize</enum>
+   <property name="leftMargin">
+    <number>6</number>
    </property>
-   <item row="10" column="0" colspan="2">
-    <widget class="QPushButton" name="pushButton">
-     <property name="minimumSize">
-      <size>
-       <width>100</width>
-       <height>30</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>100</width>
-       <height>30</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Default</string>
-     </property>
-    </widget>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item row="0" column="1">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QPushButton" name="pb_load_data">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>80</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Load Data</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pb_clear_data">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>80</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Clear Data</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="lab_path">
+         <property name="text">
+          <string>Path</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="le_path">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
    </item>
-   <item row="0" column="0" colspan="2">
-    <widget class="QPushButton" name="pb_load_data">
-     <property name="minimumSize">
-      <size>
-       <width>100</width>
-       <height>30</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>80</width>
-       <height>30</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Load Data</string>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="3">
-    <widget class="QLineEdit" name="lineEdit">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2" colspan="2">
-    <widget class="QPushButton" name="pb_clear_data">
-     <property name="minimumSize">
-      <size>
-       <width>100</width>
-       <height>30</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>80</width>
-       <height>30</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Clear Data</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="lab_path">
-     <property name="text">
-      <string>Path</string>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="0" colspan="3">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Breaking Point Number</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1" colspan="3">
-    <widget class="QLineEdit" name="le_path">
-     <property name="readOnly">
+   <item row="1" column="1">
+    <widget class="QListView" name="view_files">
+     <property name="dragEnabled">
       <bool>true</bool>
      </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+     <property name="dragDropMode">
+      <enum>QAbstractItemView::DragDrop</enum>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>20</height>
-      </size>
+     <property name="defaultDropAction">
+      <enum>Qt::IgnoreAction</enum>
      </property>
-    </spacer>
-   </item>
-   <item row="6" column="0" colspan="2">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Method</string>
+     <property name="alternatingRowColors">
+      <bool>false</bool>
      </property>
-    </widget>
-   </item>
-   <item row="7" column="0" colspan="4">
-    <widget class="QComboBox" name="comboBox">
-     <item>
-      <property name="text">
-       <string>RMSE</string>
-      </property>
-     </item>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::ExtendedSelection</enum>
+     </property>
+     <property name="viewMode">
+      <enum>QListView::ListMode</enum>
+     </property>
     </widget>
    </item>
   </layout>

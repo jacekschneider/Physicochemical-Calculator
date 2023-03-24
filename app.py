@@ -1,8 +1,6 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow
-from PyQt6.QtGui import QIcon
 from PyQt6.uic.load_ui import loadUi
-import pyqtgraph as pg
 
 
 class MainWindow(QMainWindow):

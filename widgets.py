@@ -1,22 +1,27 @@
-import math
 import numpy as np
 import pyqtgraph as pg
-from pathlib import Path
-from PyQt6.QtWidgets import QWidget, QGridLayout, QDial, QLineEdit, QLabel, QPushButton, QFileDialog
-from PyQt6.QtCore import pyqtSignal as Signal, QThread
-from PyQt6.QtGui import QIntValidator
+from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider
+from PyQt6.QtCore import pyqtSignal as Signal, QDir
+from PyQt6.QtGui import  QFileSystemModel
 from PyQt6.uic.load_ui import loadUi
-from workers import LoadWorker
-from utils import get_data, pens
+from utils import get_data, pens, read_single_file, get_concentrations
 
         
-            
+          
 class WidgetNavigation(QWidget):
     emit_path_folder = Signal(str)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         loadUi("UI/ui_navigation.ui", self)
         self.pb_load_data.clicked.connect(self.open_file_dialog)
+        
+        # view_files widget
+        self.model = QFileSystemModel()
+        icon_provider = QFileIconProvider()
+        self.model.setIconProvider(icon_provider) 
+        self.model.setRootPath("") 
+        self.model.setNameFilters(["*.txt"])
+        self.model.setNameFilterDisables(False)
         
     def open_file_dialog(self):
         path_folder = QFileDialog.getExistingDirectory(
@@ -25,6 +30,14 @@ class WidgetNavigation(QWidget):
         )
         self.emit_path_folder.emit(path_folder)
         self.le_path.setText(path_folder)
+        self.view_files.setModel(self.model)
+        root_index = self.model.index(QDir.cleanPath(path_folder))
+        self.view_files.setRootIndex(root_index)
+    
+    def clear(self):
+        self.le_path.setText("")
+        self.view_files.setModel(None)
+  
         
 class WidgetCAC(QWidget):
     def __init__(self, *args, **kwargs):
@@ -48,6 +61,7 @@ class WidgetData(QWidget):
         self.graph.setLabel('left', 'Intensity', **self.styles)
 
     def load(self, path:str):
+        self.clear()
         data = get_data(path)
         data.dropna(how="all", axis="index", inplace=True)
         x = data.index.values
@@ -65,3 +79,24 @@ class WidgetData(QWidget):
             self.graph.removeItem(item)
         while len(self.items_plot):
             self.items_plot.pop()
+    
+    def dragEnterEvent(self, e):
+        e.accept()
+    
+    #!JSCH -> Accept txt only, otherwise do sth
+    def dropEvent(self, e):
+        view = e.source()
+        for item in view.selectedIndexes():
+            path = view.model().filePath(item)
+            path_ending = path.split('.')[-1]
+            if path_ending == 'txt':
+                data = read_single_file(path, ignore_X=False)
+                data.set_index('X', inplace=True)
+                data.dropna(inplace=True)
+                x = data.index.values
+                y = data['Y'].values
+                title = get_concentrations([path])[0]
+                # JSCH! -> upgrade pen selection
+                pen_index = np.random.randint(0, 6)
+                self.draw(x, y, title, pen_index)
+        e.accept()
