@@ -4,6 +4,7 @@ import pyqtgraph as pg
 import re
 from PyQt6.QtCore import QCoreApplication
 from pathlib import Path
+from sklearn.linear_model import LinearRegression ## pip install numpy scikit-learn statsmodels
 
 def closest_value(input_list, input_value):
     arr = np.asarray(input_list)
@@ -75,7 +76,39 @@ def get_peaks(data: pd.DataFrame, peak1: int = 373, peak2: int = 384, window: in
 
     return peaks.T
 
+def prepare_regression_data(data: pd.DataFrame) -> pd.DataFrame:
+    concentrations: list[float] = [float(i) for i in data.columns]
+    relatives = data.loc['Peak 1']/data.loc['Peak 2']
+    regression_data = pd.DataFrame({'Y': relatives,
+                                    'X': concentrations})
+    return regression_data.T
+
+def choose_model(data: pd.DataFrame):
+    def RMSE(y,ypredict):
+        mse = np.square(np.subtract(y,ypredict))
+        rmse = np.sqrt(mse)
+        return rmse
+    X = data.loc['X'].to_numpy().reshape((-1, 1)) # the reshape is required
+    Y = data.loc['Y'].to_numpy()
+    for i in range(2,len(X)-2): # covers all possible models
+        x1,x2 = X[:i],X[i:]
+        y1,y2 = Y[:i],Y[i:]
+        model1, model2 = LinearRegression().fit(x1,y1), LinearRegression().fit(x2,y2)
+        prediction1, prediction2 = model1.predict(x1), model2.predict(x2)
+        rmse1, rmse2 = RMSE(y1,prediction1), RMSE(y2,prediction2)
+        rsq1, rsq2 = model1.score(), model2.score()
+        ...
+        # TODO finish this
+        # model evaluation and returning the best fit one
+        # maybe think about the crossing test
+
 colors = "rgbwymc"
 pens = []
 for color in colors:
     pens.append(pg.mkPen(color))
+
+if __name__ == '__main__': # for testing purposes
+    data = get_data("Data\pomiar1")
+    peaks = get_peaks(data)
+    regdata = prepare_regression_data(peaks)
+    choose_model(regdata)
