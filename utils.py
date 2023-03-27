@@ -84,6 +84,13 @@ def prepare_regression_data(data: pd.DataFrame) -> pd.DataFrame:
                                     'X': concentrations})
     return regression_data.T
 
+def CAC(model1: LinearRegression,model2: LinearRegression):
+    '''Calculates CAC based on the parameters of two linear models\n
+    Important! returns CAC in log10 scale'''
+    b1, b2 = model1.intercept_, model2.intercept_
+    a1, a2 = model1.coef_, model2.coef_
+    return (b2-b1)/(a1-a2)
+
 def get_models(data: pd.DataFrame) -> pd.DataFrame:
     def RMSE(y,ypredict):
         mse = np.square(np.subtract(y,ypredict))
@@ -120,6 +127,8 @@ def example_plot(regdata: pd.DataFrame, model_frame_id: int, model1: LinearRegre
         x_vals = np.array(axes.get_xlim())
         y_vals = intercept + slope * x_vals
         plt.plot(x_vals, y_vals, '--')
+
+    ## data plots
     X = regdata.loc['X'].to_numpy()
     Y = regdata.loc['Y'].to_numpy()
     M1b0, M1b1 = model1.intercept_,model1.coef_
@@ -131,6 +140,11 @@ def example_plot(regdata: pd.DataFrame, model_frame_id: int, model1: LinearRegre
     plt.plot(x2,y2,'ro')
     abline(M1b1,M1b0)
     abline(M2b1,M2b0)
+    ## CAC
+    xcor = CAC(model1, model2)
+    ycor = M1b1*xcor + M1b0
+    plt.plot(xcor, ycor, 'g*')
+    ## The plot is not scaled properly
     plt.show()
 
 colors = "rgbwymc"
