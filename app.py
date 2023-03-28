@@ -10,6 +10,7 @@ class MainWindow(QMainWindow):
         self.show()
         
         self.widget_navigation.emit_path_folder.connect(self.widget_data.load)
+        self.widget_navigation.emit_path_folder.connect(self.widget_cac.load)
         self.widget_navigation.pb_clear_data.clicked.connect(self.widget_data.clear)
         
         

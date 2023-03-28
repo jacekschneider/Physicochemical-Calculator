@@ -4,6 +4,8 @@ import pyqtgraph as pg
 import re
 from PyQt6.QtCore import QCoreApplication
 from pathlib import Path
+from sklearn.linear_model import LinearRegression ## pip install numpy scikit-learn statsmodels
+from math import log10
 
 def closest_value(input_list, input_value):
     arr = np.asarray(input_list)
@@ -44,7 +46,7 @@ def get_concentrations(files:list) -> list:
         concentrations.append(float(con))
     return concentrations
 
-dirpath = 'C:/Users/kwese/Desktop/Engineering thesis/Współpraca Artur Bal/przykładowy pomiar'
+
 def get_data(dirpath: str, encoding: str = 'UTF-16', separator: str = '\t')-> pd.DataFrame:
     files:list[str] = [str(file)for file in list(Path(dirpath).glob('*.txt'))]
     concentrations: list[float] = get_concentrations(files)
@@ -75,7 +77,87 @@ def get_peaks(data: pd.DataFrame, peak1: int = 373, peak2: int = 384, window: in
 
     return peaks.T
 
+def prepare_regression_data(data: pd.DataFrame) -> pd.DataFrame:
+    concentrations: list[float] = [log10(float(i)) for i in data.columns]
+    relatives = data.loc['Peak 1']/data.loc['Peak 2']
+    regression_data = pd.DataFrame({'Y': relatives,
+                                    'X': concentrations})
+    return regression_data.T
+
+def CAC(model1: LinearRegression,model2: LinearRegression):
+    '''Calculates CAC based on the parameters of two linear models\n
+    Important! returns CAC in log10 scale'''
+    b1, b2 = model1.intercept_, model2.intercept_
+    a1, a2 = model1.coef_, model2.coef_
+    return (b2-b1)/(a1-a2)
+
+def get_models(data: pd.DataFrame) -> pd.DataFrame:
+    def RMSE(y,ypredict):
+        mse = np.square(np.subtract(y,ypredict))
+        rmse = np.sqrt(np.sum(mse)/len(y))
+        return rmse
+    
+    X = data.loc['X'].to_numpy().reshape((-1, 1)) # the reshape is required
+    Y = data.loc['Y'].to_numpy()
+    model_data = {}
+    for i in range(2,len(X)-2): # covers all possible models
+        x1,x2 = X[:i],X[i:]
+        y1,y2 = Y[:i],Y[i:]
+        model1, model2 = LinearRegression().fit(x1,y1), LinearRegression().fit(x2,y2)
+        prediction1, prediction2 = model1.predict(x1), model2.predict(x2)
+        rmse1, rmse2 = RMSE(y1,prediction1), RMSE(y2,prediction2)
+        rsq1, rsq2 = model1.score(x1,y1), model2.score(x2,y2) # coeficient of determination R^2
+        model_data[i] = {'RMSE':rmse1+rmse2, 'R2':rsq1+rsq2, 'model1':model1, 'model2':model2}
+        # model_data[i] = {'RMSE':rmse1+rmse2, 'R2':rsq1+rsq2, 'models':(model1, model2)} # Potentialy easier to manage
+    model_data = pd.DataFrame(model_data).T # swapping the usual conversion because of needing columns to be numeric
+    model_data = model_data.astype({'R2': 'Float64', 'RMSE': 'Float64'})
+    return model_data 
+
+def choose_models_frame_id(model_data: pd.DataFrame) -> tuple:
+    '''Finds the best models and returns the row id as a tuple\n
+    Made this way to be easily able to both find the models in a dataframe and split the point'''
+    best_R2 = model_data['R2'].idxmax()
+    best_RMSE = model_data['RMSE'].idxmin()
+    return best_R2,best_RMSE
+
+def example_plot(regdata: pd.DataFrame, model_frame_id: int, model1: LinearRegression, model2: LinearRegression):
+    def abline(slope, intercept):
+        """Plot a line from slope and intercept"""
+        axes = plt.gca()
+        x_vals = np.array(axes.get_xlim())
+        y_vals = intercept + slope * x_vals
+        plt.plot(x_vals, y_vals, '--')
+
+    ## data plots
+    X = regdata.loc['X'].to_numpy()
+    Y = regdata.loc['Y'].to_numpy()
+    M1b0, M1b1 = model1.intercept_,model1.coef_
+    M2b0, M2b1 = model2.intercept_,model2.coef_
+
+    x1,x2 = X[:model_frame_id], X[model_frame_id:]
+    y1,y2 = Y[:model_frame_id], Y[model_frame_id:]
+    plt.plot(x1,y1,'bo')
+    plt.plot(x2,y2,'ro')
+    abline(M1b1,M1b0)
+    abline(M2b1,M2b0)
+    ## CAC
+    xcor = CAC(model1, model2)
+    ycor = M1b1*xcor + M1b0
+    plt.plot(xcor, ycor, 'g*')
+    ## The plot is not scaled properly
+    plt.show()
+
 colors = "rgbwymc"
 pens = []
 for color in colors:
     pens.append(pg.mkPen(color))
+
+if __name__ == '__main__': # for testing purposes
+    import matplotlib.pyplot as plt
+    data = get_data("Data\pomiar1")
+    peaks = get_peaks(data)
+    regdata = prepare_regression_data(peaks) # this can be plotted
+    model_data = get_models(regdata)
+    R2val, RMSEval = choose_models_frame_id(model_data)
+    model1,model2 = model_data.loc[RMSEval,['model1','model2']]
+    example_plot(regdata, RMSEval, model1,model2)
