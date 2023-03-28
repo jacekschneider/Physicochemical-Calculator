@@ -86,6 +86,7 @@ class WidgetData(QWidget):
     #!JSCH -> Accept txt only, otherwise do sth
     def dropEvent(self, e):
         view = e.source()
+        self.clear()
         for item in view.selectedIndexes():
             path = view.model().filePath(item)
             path_ending = path.split('.')[-1]
