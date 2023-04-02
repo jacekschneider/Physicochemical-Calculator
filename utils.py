@@ -6,6 +6,7 @@ from PyQt6.QtCore import QCoreApplication
 from pathlib import Path
 from sklearn.linear_model import LinearRegression ## pip install numpy scikit-learn statsmodels
 from math import log10
+from dataclasses import dataclass, field
 
 def closest_value(input_list, input_value):
     arr = np.asarray(input_list)
@@ -151,6 +152,40 @@ colors = "rgbwymc"
 pens = []
 for color in colors:
     pens.append(pg.mkPen(color))
+
+@dataclass()
+class Measurement():
+    path : str
+    concentration : str = field(init = False)
+    x : np.array = field(init=False)
+    y : np.array = field(init=False)
+    peak1 : int = field(init=False)
+    peak2 : int = field(init=False)
+    window_width : int = field(init=False)
+    peak1_max : int = field(init=False)
+    peak2_max : int = field(init=False)
+    peak1_max_id : int = field(init=False)
+    peak2_max_id : int = field(init = False)
+    
+    pen_color : list = field(default_factory = lambda:[255, 255, 255])
+    symbol : str = "o"
+    symbol_pen_color : list = field(default_factory = lambda:[255, 255, 255])
+    symbol_brush_color : list = field(default_factory = lambda:[255, 255, 255])
+    symbol_size : int = 7
+    name : str = field(init=False, default="NoName")
+    
+    def __post_init__(self):
+        pass
+    
+class Calculator():
+    def __init__(self) -> None:
+        self.measurements = []
+    
+    def set_measurements(self, measurements:list) -> None:
+        self.measurements = measurements
+    
+    def rmse():
+        pass
 
 if __name__ == '__main__': # for testing purposes
     import matplotlib.pyplot as plt
