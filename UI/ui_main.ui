@@ -82,8 +82,15 @@
     </property>
     <addaction name="actionWelcome"/>
    </widget>
+   <widget class="QMenu" name="menuReport">
+    <property name="title">
+     <string>Report</string>
+    </property>
+    <addaction name="action_generate"/>
+   </widget>
    <addaction name="menuLanguages"/>
    <addaction name="menuHelp"/>
+   <addaction name="menuReport"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionEnglish">
@@ -116,6 +123,11 @@
   <action name="actionWelcome">
    <property name="text">
     <string>Welcome</string>
+   </property>
+  </action>
+  <action name="action_generate">
+   <property name="text">
+    <string>Generate ...</string>
    </property>
   </action>
  </widget>

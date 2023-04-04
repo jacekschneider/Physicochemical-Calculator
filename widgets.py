@@ -31,11 +31,15 @@ class WidgetNavigation(QWidget):
             self,
             "Select Directory"
         )
-        self.emit_path_folder.emit(path_folder)
-        self.le_path.setText(path_folder)
-        self.view_files.setModel(self.model)
-        root_index = self.model.index(QDir.cleanPath(path_folder))
-        self.view_files.setRootIndex(root_index)
+        if path_folder != "":
+            self.emit_path_folder.emit(path_folder)
+            self.le_path.setText(path_folder)
+            self.view_files.setModel(self.model)
+            root_index = self.model.index(QDir.cleanPath(path_folder))
+            self.view_files.setRootIndex(root_index)
+        else:
+            #!JSCH
+            pass
     
     def clear(self):
         self.le_path.setText("")
