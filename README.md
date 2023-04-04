@@ -1,1 +1,3 @@
-# PBL
+Jacek Schneider
+
+Konrad Wesenfeld
