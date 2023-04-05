@@ -1,6 +1,7 @@
 import numpy as np
 import pyqtgraph as pg
 import pathlib
+from multipledispatch import dispatch
 from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider
 from PyQt6.QtCore import pyqtSignal as Signal, QDir
 from PyQt6.QtGui import  QFileSystemModel
@@ -136,13 +137,10 @@ class WidgetData(QWidget):
         self.graph.setLabel('left', 'Intensity', **self.styles)
 
     def load(self, measurements:list):
-        self.clear()
         self.measurements = measurements
+        self.draw()
         
-        for measurement in self.measurements:
-            if measurement.enabled:
-                self.draw(measurement)
-                   
+    @dispatch(Measurement)                  
     def draw(self, measurement:Measurement):
         pen = pg.mkPen(measurement.pen_color) if measurement.pen_enabled else None
         item_plot = self.graph.plot(
@@ -150,12 +148,22 @@ class WidgetData(QWidget):
             y=measurement.data['Y'].to_numpy(),
             pen=pen,
             symbol=measurement.symbol,
-            symbolPen=pg.mkPen(measurement.symbol_pen_color),
+            symbolPen=pg.mkPen(measurement.pen_color),
             symbolBrush=pg.mkBrush(measurement.symbol_brush_color),
             symbolSize=measurement.symbol_size,
             name=measurement.name
         )
         self.items_plot.append(item_plot)
+    
+    @dispatch()
+    def draw(self):
+        self.clear()
+        for (index, measurement) in enumerate(self.measurements):
+            if measurement.enabled:
+                pen_index = np.random.randint(0, 6)
+                pen_color = us.colors[pen_index]
+                self.measurements[index].set_pen_color(pen_color) 
+                self.draw(measurement)
         
     def clear(self):
         for item in self.items_plot:
@@ -170,17 +178,16 @@ class WidgetData(QWidget):
     def dropEvent(self, e):
         view = e.source()
         self.clear()
+        for (index, measurement) in enumerate(self.measurements):
+            self.measurements[index].set_enabled(False)
         for item in view.selectedIndexes():
             path = view.model().filePath(item)
             path_ending = path.split('.')[-1]
+            filename = path.split('/')[-1]
             if path_ending == 'txt':
-                data = read_single_file(path, ignore_X=False)
-                data.set_index('X', inplace=True)
-                data.dropna(inplace=True)
-                x = data.index.values
-                y = data['Y'].values
-                title = get_concentrations([path])[0]
-                # JSCH! -> upgrade pen selection
-                pen_index = np.random.randint(0, 6)
-                self.draw(x, y, title, pen_index)
+                for (index, measurement) in enumerate(self.measurements):
+                    if filename == measurement.filename:
+                        self.measurements[index].set_enabled(True)
+                    
+        self.draw()
         e.accept()

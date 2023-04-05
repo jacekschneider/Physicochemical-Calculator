@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pyqtgraph as pg
 import re
+from multipledispatch import dispatch
 from PyQt6.QtCore import QCoreApplication
 from pathlib import Path
 from sklearn.linear_model import LinearRegression ## pip install numpy scikit-learn statsmodels
@@ -168,10 +169,9 @@ class Measurement():
     window_width : int = 3
     peaks:dict = field(init=False)
     
-    pen_color : list = field(default_factory=lambda:[255, 255, 255], init=False)
+    pen_color = "w"
     pen_enabled : bool = field(default=False, init=False)
     symbol : str = field(default="o", init=False)
-    symbol_pen_color : list = field(default_factory=lambda:[255, 255, 255], init=False)
     symbol_brush_color : list = field(default_factory=lambda:[0, 0, 0], init=False)
     symbol_size : int = field(default=7, init=False)
     name : str = field(default="NoName", init=False,)
@@ -181,13 +181,13 @@ class Measurement():
     def __post_init__(self):
         self.load_data()
         self.load_peaks()
-        self.name = "Concentration = {}".format(self.concentration)
-        self.enabled = True  
+        self.set_name("Concentration = {}".format(self.concentration))
+        self.set_enabled(True)
     
     def load_data(self):
 
         filename = self.path.split('\\')[-1] # the last element should be the filename
-        self.filename = filename
+        object.__setattr__(self, 'filename', filename)
         filename = filename.replace('.txt','').replace(',','.')
         # assuming there may be numbers in the filename, but not after the concentration
         con = re.findall('\d+(?:\.\d+)?', filename)[-1] # extracts floats and integers
@@ -200,13 +200,12 @@ class Measurement():
         Yval = Yval[1::2]
         Yval = Yval.mean(axis=1)
         Xval = raw['X']
-        self.data = pd.concat([Xval,Yval],axis=1, keys=['X','Y'])
-        self.data.dropna(inplace=True)
-        self.data.set_index('X', inplace=True)
-        self.concentration = concentration
+        data = pd.concat([Xval,Yval],axis=1, keys=['X','Y'])
+        data.dropna(inplace=True)
+        object.__setattr__(self, 'data', data.set_index('X'))
+        object.__setattr__(self, 'concentration', concentration)
         
     def load_peaks(self):
-
         P1_window_low, P1_window_high = self.peak1 - self.window_width//2, self.peak1 + self.window_width//2
         P2_window_low, P2_window_high = self.peak2 - self.window_width//2, self.peak2 + self.window_width//2
         P1, P2 = self.data.loc[P1_window_low:P1_window_high], self.data.loc[P2_window_low:P2_window_high]
@@ -215,45 +214,46 @@ class Measurement():
         peak1_max_id, peak2_max_id = P1.idxmax(), P2.idxmax()
         # indexes of found values are needed for marking them on a plot
         # for data preview concentrations are saved in the column names
-        self.peaks = {
+        peaks = {
                 'Peak 1' : peak1_max,
                 'Peak 2' : peak2_max,
                 'Peak 1 ID' : peak1_max_id,
                 'Peak 2 ID' : peak2_max_id
                 }
+        object.__setattr__(self, 'peaks', peaks)
     
+    @dispatch(list)
     def set_pen_color(self, color:list):
         if len(color) == 3:
-            self.pen_color = color
+            object.__setattr__(self, 'pen_color', color)
+            
+    @dispatch(str)
+    def set_pen_color(self, color:str):
+        object.__setattr__(self, 'pen_color', color)
     
     def set_pen_enabled(self, state:bool):
-        self.pen_enabled = state
+        object.__setattr__(self, 'pen_enabled', state)
         
     def set_symbol(self, symbol:str):
         #JSCH!
-        self.symbol = symbol
-    
-    def set_symbol_pen_color(self, color:list):
-        if len(color) == 3:
-            self.symbol_pen_color = color
+        object.__setattr__(self, 'symbol', symbol)
     
     def set_symbol_brush_color(self, color:list):
         if len(color) == 3:
-            self.symbol_brush_color = color
+            object.__setattr__(self, 'symbol_brush_color', color)
     
     def set_symbol_size(self, size:int):
         self.symbol_size = size
+        object.__setattr__(self, 'symbol_size', size)
     
     def set_name(self, name:str):
-        self.name = name
+        object.__setattr__(self, 'name', name)
         
     def set_enabled(self, state:bool):
-        self.enabled = state
+        object.__setattr__(self, 'enabled', state)
 
     
     
-    
-
 if __name__ == '__main__': # for testing purposes
     import matplotlib.pyplot as plt
     data = get_data("Data\pomiar1")
