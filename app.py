@@ -17,11 +17,10 @@ class MainWindow(QMainWindow):
         self.widget_navigation.emit_path_folder.connect(self.widget_cac.load)
         self.widget_navigation.pb_clear_data.clicked.connect(self.widget_data.clear)
         self.action_generate.triggered.connect(self.report_worker.generate)
-        
+
         self.show()
         
-        
-        
+            
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main = MainWindow()

@@ -1,5 +1,6 @@
 import numpy as np
 import pyqtgraph as pg
+import pathlib
 from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider
 from PyQt6.QtCore import pyqtSignal as Signal, QDir
 from PyQt6.QtGui import  QFileSystemModel
@@ -29,7 +30,8 @@ class WidgetNavigation(QWidget):
     def open_file_dialog(self):
         path_folder = QFileDialog.getExistingDirectory(
             self,
-            "Select Directory"
+            "Select Directory",
+            directory=str(pathlib.Path().absolute())
         )
         if path_folder != "":
             self.emit_path_folder.emit(path_folder)
