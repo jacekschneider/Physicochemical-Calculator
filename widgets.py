@@ -13,7 +13,7 @@ from sklearn.linear_model import LinearRegression
         
           
 class WidgetNavigation(QWidget):
-    emit_path_folder = Signal(str)
+    emit_dirpath = Signal(str)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         loadUi("UI/ui_navigation.ui", self)
@@ -34,7 +34,7 @@ class WidgetNavigation(QWidget):
             directory=str(pathlib.Path().absolute())
         )
         if path_folder != "":
-            self.emit_path_folder.emit(path_folder)
+            self.emit_dirpath.emit(path_folder)
             self.le_path.setText(path_folder)
             self.view_files.setModel(self.model)
             root_index = self.model.index(QDir.cleanPath(path_folder))

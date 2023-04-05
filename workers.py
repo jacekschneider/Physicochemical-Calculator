@@ -1,4 +1,7 @@
-import pathlib
+import re
+import pandas as pd
+from pathlib import Path
+from utils import Measurement
 from PyQt6.QtWidgets import QFileDialog
 from PyQt6.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QObject
 from reportlab.pdfgen.canvas import Canvas
@@ -13,7 +16,7 @@ class ReportWorker(QObject):
     def generate(self):
         file_path, selected_filter = QFileDialog.getSaveFileName(
             caption="Select a directory",
-            directory=str(pathlib.Path().absolute()),
+            directory=str(Path().absolute()),
             filter="PDF File (*.pdf)"
         )
         if file_path:
@@ -36,5 +39,13 @@ class CalculatorWorker(QObject):
         self.measurements = measurements
 
     @Slot(str)
-    def load(self, str):
-        pass
+    def load(self, dirpath):
+        self.measurements = []
+        files:list[str] = [str(file)for file in list(Path(dirpath).glob('*.txt'))]
+        for file in files:
+            measurement = Measurement(file, encoding="utf-16", separator="\t")
+            self.measurements.append(measurement)
+            print(measurement.name)
+
+        
+    

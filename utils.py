@@ -155,8 +155,11 @@ for color in colors:
     
 @dataclass()
 class Measurement():
+    
     path : str
-    concentration : str = field(init = False)
+    encoding : str = 'utf-8'
+    separator : str = ','
+    concentration : str = field(init=False)
     x : np.array = field(init=False)
     y : np.array = field(init=False)
     peak1 : int = field(init=False)
@@ -167,15 +170,41 @@ class Measurement():
     peak1_max_id : int = field(init=False)
     peak2_max_id : int = field(init = False)
     
-    pen_color : list = field(default_factory = lambda:[255, 255, 255])
-    symbol : str = "o"
-    symbol_pen_color : list = field(default_factory = lambda:[255, 255, 255])
-    symbol_brush_color : list = field(default_factory = lambda:[255, 255, 255])
-    symbol_size : int = 7
+    pen_color : list = field(default_factory=lambda:[255, 255, 255], init=False)
+    symbol : str = field(default="o", init=False)
+    symbol_pen_color : list = field(default_factory=lambda:[255, 255, 255], init=False)
+    symbol_brush_color : list = field(default_factory=lambda:[255, 255, 255], init=False)
+    symbol_size : int = field(default="o", init=False)
     name : str = field(init=False, default="NoName")
     enabled : bool = field(init=False, default=False)
+    faulted : bool = field(init=False, default=False)
     
     def __post_init__(self):
+        self.load_data()
+        self.name = "Concentration = {}".format(self.concentration)  
+    
+    def load_data(self):
+
+        filename = self.path.split('\\')[-1] # the last element should be the filename
+        filename = filename.replace('.txt','').replace(',','.')
+        # assuming there may be numbers in the filename, but not after the concentration
+        con = re.findall('\d+(?:\.\d+)?', filename)[-1] # extracts floats and integers
+        concentration= str(float(con))
+
+        raw = pd.read_csv(self.path, encoding=self.encoding, sep=self.separator)
+        print(raw)
+        Yval = raw[raw.columns[raw.columns.str.startswith('Y')]]
+        # filtering out Y values, excluding every other column because of bad data
+        # may heve to be removed
+        Yval = Yval[1::2]
+        Yval = Yval.mean(axis=1)
+        Xval = raw['X']
+        
+        self.x = Xval
+        self.y = Yval
+        self.concentration = concentration
+    
+    def load_peaks(self):
         pass
     
 class Calculator():
