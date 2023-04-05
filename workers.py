@@ -43,9 +43,9 @@ class CalculatorWorker(QObject):
         self.measurements = []
         files:list[str] = [str(file)for file in list(Path(dirpath).glob('*.txt'))]
         for file in files:
-            measurement = Measurement(file, encoding="utf-16", separator="\t")
+            measurement = Measurement(path=file, encoding="utf-16", separator="\t")
             self.measurements.append(measurement)
-            print(measurement.name)
+
 
         
     

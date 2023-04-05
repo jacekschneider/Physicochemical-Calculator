@@ -160,11 +160,10 @@ class Measurement():
     encoding : str = 'utf-8'
     separator : str = ','
     concentration : str = field(init=False)
-    x : np.array = field(init=False)
-    y : np.array = field(init=False)
-    peak1 : int = field(init=False)
-    peak2 : int = field(init=False)
-    window_width : int = field(init=False)
+    data : pd.Series = field(init=False)
+    peak1 : int = 373
+    peak2 : int = 374
+    window_width : int = 3
     peak1_max : int = field(init=False)
     peak2_max : int = field(init=False)
     peak1_max_id : int = field(init=False)
@@ -181,6 +180,7 @@ class Measurement():
     
     def __post_init__(self):
         self.load_data()
+        self.load_peaks()
         self.name = "Concentration = {}".format(self.concentration)  
     
     def load_data(self):
@@ -192,30 +192,25 @@ class Measurement():
         concentration= str(float(con))
 
         raw = pd.read_csv(self.path, encoding=self.encoding, sep=self.separator)
-        print(raw)
         Yval = raw[raw.columns[raw.columns.str.startswith('Y')]]
         # filtering out Y values, excluding every other column because of bad data
         # may heve to be removed
         Yval = Yval[1::2]
         Yval = Yval.mean(axis=1)
         Xval = raw['X']
-        
-        self.x = Xval
-        self.y = Yval
+        self.data = pd.concat([Xval,Yval],axis=1, keys=['X','Y'])
+        self.data.dropna(inplace=True)
+        self.data.set_index('X', inplace=True)
         self.concentration = concentration
+        
     
     def load_peaks(self):
-        pass
+
+        P1_window_low, P1_window_high = self.peak1 - self.window_width//2, self.peak1 + self.window_width//2
+        P2_window_low, P2_window_high = self.peak2 - self.window_width//2, self.peak2 + self.window_width//2
+        P1, P2 = self.data.loc[P1_window_low:P1_window_high], self.data.loc[P2_window_low:P2_window_high]
+
     
-class Calculator():
-    def __init__(self) -> None:
-        self.measurements = []
-    
-    def set_measurements(self, measurements:list) -> None:
-        self.measurements = measurements
-    
-    def rmse():
-        pass
     
     
 
