@@ -32,19 +32,18 @@ class ReportWorker(QObject):
             canvas.showPage()
             canvas.save()
 
-class CalculatorWorker(QObject):
+class SettingsWorker(QObject):
+    emit_measurements = Signal(list)
     
-    @Slot(list)
-    def set_measurements(self, measurements:list):
-        self.measurements = measurements
-
     @Slot(str)
     def load(self, dirpath):
-        self.measurements = []
+        self.measurements:list[Measurement] = []
         files:list[str] = [str(file)for file in list(Path(dirpath).glob('*.txt'))]
         for file in files:
             measurement = Measurement(path=file, encoding="utf-16", separator="\t")
             self.measurements.append(measurement)
+        self.emit_measurements.emit(self.measurements)
+            
 
 
         

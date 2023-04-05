@@ -7,6 +7,7 @@ from PyQt6.QtGui import  QFileSystemModel
 from PyQt6.uic.load_ui import loadUi
 from utils import get_data, pens, read_single_file, get_concentrations
 import utils as us
+from utils import Measurement
 
 import pandas as pd
 from sklearn.linear_model import LinearRegression
@@ -59,7 +60,7 @@ class WidgetCAC(QWidget):
         self.graph.showGrid(x=True, y=True)
         # self.legend = self.graph.addLegend(labelTextColor="w", labelTextSize="12")
         # self.legend.anchor((0,0),(0.7,0.1))
-        self.styles = {'color':'white', 'font-size':'15px'}
+        self.styles = {'color':'white', 'font-size':'17px'}
         self.graph.setLabel('bottom', 'logC, mg/ml', **self.styles)
         self.graph.setLabel('left', 'I1/I3', **self.styles)
     
@@ -123,28 +124,37 @@ class WidgetData(QWidget):
         super().__init__(*args, **kwargs)
         loadUi("UI/ui_data.ui", self)
         
+        self.measurements:list[Measurement] = []
         #Graph Items
         self.items_plot = []
         
         self.graph.showGrid(x=True, y=True)
         self.legend = self.graph.addLegend(labelTextColor="w", labelTextSize="12")
         self.legend.anchor((0,0),(0.7,0.1))
-        self.styles = {'color':'white', 'font-size':'15px'}
+        self.styles = {'color':'white', 'font-size':'17px'}
         self.graph.setLabel('bottom', 'Wavelength, nm', **self.styles)
         self.graph.setLabel('left', 'Intensity', **self.styles)
 
-    def load(self, path:str):
+    def load(self, measurements:list):
         self.clear()
-        data = get_data(path)
-        data.dropna(how="all", axis="index", inplace=True)
-        x = data.index.values
-        for (index, column) in enumerate(data):
-            title = column
-            y= data[column].values
-            self.draw(x, y, title, pen_index=index)
-              
-    def draw(self, x:np.array, y:np.array, title:str, pen_index:int=0):
-        item_plot = self.graph.plot(x,y,pen=None, symbol='o', symbolPen=pens[pen_index%len(pens)],symbolBrush=pg.mkBrush(0,0,0),  symbolSize=7, name=f"concentration = {title}")
+        self.measurements = measurements
+        
+        for measurement in self.measurements:
+            if measurement.enabled:
+                self.draw(measurement)
+                   
+    def draw(self, measurement:Measurement):
+        pen = pg.mkPen(measurement.pen_color) if measurement.pen_enabled else None
+        item_plot = self.graph.plot(
+            x=measurement.data.index.values,
+            y=measurement.data['Y'].to_numpy(),
+            pen=pen,
+            symbol=measurement.symbol,
+            symbolPen=pg.mkPen(measurement.symbol_pen_color),
+            symbolBrush=pg.mkBrush(measurement.symbol_brush_color),
+            symbolSize=measurement.symbol_size,
+            name=measurement.name
+        )
         self.items_plot.append(item_plot)
         
     def clear(self):

@@ -153,39 +153,41 @@ pens = []
 for color in colors:
     pens.append(pg.mkPen(color))
     
-@dataclass()
+@dataclass(frozen=True)
 class Measurement():
     
     path : str
     encoding : str = 'utf-8'
     separator : str = ','
+    filename : str = field(init=False)
     concentration : str = field(init=False)
     data : pd.Series = field(init=False)
+    
     peak1 : int = 373
     peak2 : int = 374
     window_width : int = 3
-    peak1_max : int = field(init=False)
-    peak2_max : int = field(init=False)
-    peak1_max_id : int = field(init=False)
-    peak2_max_id : int = field(init = False)
+    peaks:dict = field(init=False)
     
     pen_color : list = field(default_factory=lambda:[255, 255, 255], init=False)
+    pen_enabled : bool = field(default=False, init=False)
     symbol : str = field(default="o", init=False)
     symbol_pen_color : list = field(default_factory=lambda:[255, 255, 255], init=False)
-    symbol_brush_color : list = field(default_factory=lambda:[255, 255, 255], init=False)
-    symbol_size : int = field(default="o", init=False)
-    name : str = field(init=False, default="NoName")
-    enabled : bool = field(init=False, default=False)
-    faulted : bool = field(init=False, default=False)
+    symbol_brush_color : list = field(default_factory=lambda:[0, 0, 0], init=False)
+    symbol_size : int = field(default=7, init=False)
+    name : str = field(default="NoName", init=False,)
+    enabled : bool = field(default=False, init=False)
+    faulted : bool = field(default=False, init=False)
     
     def __post_init__(self):
         self.load_data()
         self.load_peaks()
-        self.name = "Concentration = {}".format(self.concentration)  
+        self.name = "Concentration = {}".format(self.concentration)
+        self.enabled = True  
     
     def load_data(self):
 
         filename = self.path.split('\\')[-1] # the last element should be the filename
+        self.filename = filename
         filename = filename.replace('.txt','').replace(',','.')
         # assuming there may be numbers in the filename, but not after the concentration
         con = re.findall('\d+(?:\.\d+)?', filename)[-1] # extracts floats and integers
@@ -203,12 +205,50 @@ class Measurement():
         self.data.set_index('X', inplace=True)
         self.concentration = concentration
         
-    
     def load_peaks(self):
 
         P1_window_low, P1_window_high = self.peak1 - self.window_width//2, self.peak1 + self.window_width//2
         P2_window_low, P2_window_high = self.peak2 - self.window_width//2, self.peak2 + self.window_width//2
         P1, P2 = self.data.loc[P1_window_low:P1_window_high], self.data.loc[P2_window_low:P2_window_high]
+        
+        peak1_max, peak2_max = P1.max(),P2.max()
+        peak1_max_id, peak2_max_id = P1.idxmax(), P2.idxmax()
+        # indexes of found values are needed for marking them on a plot
+        # for data preview concentrations are saved in the column names
+        self.peaks = {
+                'Peak 1' : peak1_max,
+                'Peak 2' : peak2_max,
+                'Peak 1 ID' : peak1_max_id,
+                'Peak 2 ID' : peak2_max_id
+                }
+    
+    def set_pen_color(self, color:list):
+        if len(color) == 3:
+            self.pen_color = color
+    
+    def set_pen_enabled(self, state:bool):
+        self.pen_enabled = state
+        
+    def set_symbol(self, symbol:str):
+        #JSCH!
+        self.symbol = symbol
+    
+    def set_symbol_pen_color(self, color:list):
+        if len(color) == 3:
+            self.symbol_pen_color = color
+    
+    def set_symbol_brush_color(self, color:list):
+        if len(color) == 3:
+            self.symbol_brush_color = color
+    
+    def set_symbol_size(self, size:int):
+        self.symbol_size = size
+    
+    def set_name(self, name:str):
+        self.name = name
+        
+    def set_enabled(self, state:bool):
+        self.enabled = state
 
     
     
