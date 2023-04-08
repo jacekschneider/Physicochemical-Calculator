@@ -1,62 +1,118 @@
 import numpy as np
 import pandas as pd
+from math import log10
+from pathlib import Path
+from utils import Measurement, RMSE
+from PyQt6.QtWidgets import QFileDialog
 from PyQt6.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QObject
-from utils import verify
 from reportlab.pdfgen.canvas import Canvas
-import reportlab.lib.pagesizes as pagesizes
+from sklearn.linear_model import LinearRegression
 
-class LoadWorker(QObject):
-    signal_data_plot = Signal(dict)
-    signal_data_error = Signal(bool)
-    @Slot(str)
-    def load(self, path):
-        plot_data = {}
-        data = pd.read_excel(path)
-        try:
-            verify(data)
-        except AssertionError:
-            pass #!JSCH
-        columns = data.columns.values.tolist()
-        x = data.iloc[:, 0]
-        y = data.iloc[:, 1]
-        x_prev = 0
-        y_prev = 0
-        dy = []
-        for (x_temp, y_temp) in zip(x, y):
-            try:
-                dy.append((y_temp - y_prev)/(x_temp - x_prev))
-            except ZeroDivisionError:
-                dy.append(0)
-            x_prev = x_temp
-            y_prev = y_temp
-        # extract file name
-        title = path.split('\\')[-1].split('.')[0]
-        plot_data["title"] = title
-        plot_data["x_label"]=columns[0]
-        plot_data["y_label"]=columns[1]
-        plot_data["x"]=x
-        plot_data["y"]=y
-        plot_data["dy"]=np.round(dy, 3)
-        self.signal_data_plot.emit(plot_data)
-        
 
 class ReportWorker(QObject):
 
-    @Slot(list)
     def set_measurements(self, measurements:list):
         self.measurements = measurements
         
     def generate(self):
-        canvas = Canvas(r"D:\Semestr10\PBL\Program\report.pdf", pagesize=(652, 792))
-        canvas.setFillColorRGB(1,0,1)
-        canvas.rect(5, 5, 652-10, 792-10, fill=1)
-        canvas.setFillColorRGB(1,1,1)
-        canvas.rect(10, 10, 652-20, 792-20, fill=1)
-        canvas.setFillColorRGB(0,0,0)
-        canvas.setFontSize(18)
-        canvas.drawString(100, 750, "Physicochemical-Calculator")
-        canvas.drawImage(r"D:\Semestr10\PBL\screeny\heidi.jpg", x=50, y=200)
-        canvas.setTitle("Physicochemical-Calculator")
-        canvas.showPage()
-        canvas.save()
+        file_path, selected_filter = QFileDialog.getSaveFileName(
+            caption="Select a directory",
+            directory=str(Path().absolute()),
+            filter="PDF File (*.pdf)"
+        )
+        if file_path:
+            canvas = Canvas(file_path, pagesize=(652, 792))
+            canvas.setFillColorRGB(1,0,1)
+            canvas.rect(5, 5, 652-10, 792-10, fill=1)
+            canvas.setFillColorRGB(1,1,1)
+            canvas.rect(10, 10, 652-20, 792-20, fill=1)
+            canvas.setFillColorRGB(0,0,0)
+            canvas.setFontSize(18)
+            canvas.drawString(100, 750, "Physicochemical-Calculator")
+            canvas.setTitle("Physicochemical-Calculator")
+            canvas.showPage()
+            canvas.save()
+
+
+class SettingsWorker(QObject):
+    emit_measurements = Signal(list)
+    
+    def load(self, dirpath):
+        self.measurements:list[Measurement] = []
+        files:list[str] = [str(file)for file in list(Path(dirpath).glob('*.txt'))]
+        for file in files:
+            measurement = Measurement(path=file, encoding="utf-16", separator="\t")
+            self.measurements.append(measurement)
+        self.emit_measurements.emit(self.measurements)
+ 
+            
+class CalculatorWorker(QObject):
+    emit_RMSE = Signal(RMSE)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.measurements:list[Measurement] = []
+
+    def load(self, measurements:list):
+        self.measurements = measurements
+        regression_data = self.__prepare_regression_data()
+        model_data = self.__prepare_models(regdata=regression_data)
+        R2val, RMSEval = self.__define_best(model_data=model_data)
+        model1, model2 = model_data.loc[RMSEval,['model1','model2']]
+        cac_data = self.__calculate_cac(model1, model2)
+        rmse_data = RMSE(regression_data, RMSEval, cac_data)
+        self.emit_RMSE.emit(rmse_data)
+
+    def __prepare_regression_data(self)->pd.DataFrame:
+        concentrations: list[float] = [log10(measurement.concentration) for measurement in self.measurements]
+        relatives:list[float] = [float(measurement.peaks["Peak 1"]/measurement.peaks["Peak 2"]) for measurement in self.measurements]
+        regression_data = pd.DataFrame({'Y': relatives,'X': concentrations})
+        regression_data.sort_values('X', inplace=True)
+        return regression_data.T
+    
+    def __prepare_models(self, regdata:pd.DataFrame)->pd.DataFrame:
+        X = regdata.loc['X'].to_numpy().reshape((-1, 1)) # the reshape is required
+        Y = regdata.loc['Y'].to_numpy()
+        model_data = {}
+        for i in range(2,len(X)-2): # covers all possible models
+            x1,x2 = X[:i],X[i:]
+            y1,y2 = Y[:i],Y[i:]
+            model1, model2 = LinearRegression().fit(x1,y1), LinearRegression().fit(x2,y2)
+            prediction1, prediction2 = model1.predict(x1), model2.predict(x2)
+            rmse1, rmse2 = self.__calculate_rmse(y1,prediction1), self.__calculate_rmse(y2,prediction2)
+            rsq1, rsq2 = model1.score(x1,y1), model2.score(x2,y2) # coeficient of determination R^2
+            model_data[i] = {'RMSE':rmse1+rmse2, 'R2':rsq1+rsq2, 'model1':model1, 'model2':model2}
+            # model_data[i] = {'RMSE':rmse1+rmse2, 'R2':rsq1+rsq2, 'models':(model1, model2)} # Potentialy easier to manage
+        model_data = pd.DataFrame(model_data).T # swapping the usual conversion because of needing columns to be numeric
+        model_data = model_data.astype({'R2': 'Float64', 'RMSE': 'Float64'})
+        return model_data
+
+    def __define_best(self, model_data:pd.DataFrame)->tuple:
+        '''Finds the best models and returns the row id as a tuple\n
+        Made this way to be easily able to both find the models in a dataframe and split the point'''
+        best_R2 = model_data['R2'].idxmax()
+        best_RMSE = model_data['RMSE'].idxmin()
+        return best_R2,best_RMSE
         
+    def __calculate_rmse(self, y, ypredict):
+        mse = np.square(np.subtract(y,ypredict))
+        rmse = np.sqrt(np.sum(mse)/len(y))
+        return rmse
+    
+    def __calculate_cac(self, model1:LinearRegression, model2:LinearRegression)->dict:
+        cac_data = {}
+        b1, b2 = model1.intercept_, model2.intercept_
+        a1, a2 = model1.coef_, model2.coef_
+    
+        cac_data["b1"] = b1
+        cac_data["b2"] = b2
+        cac_data["a1"] = a1
+        cac_data["a2"] = a2
+        
+        cac_x = (b2-b1)/(a1-a2)
+        cac_y = a1*cac_x + b1
+        
+        cac_data["cac_x"] = cac_x
+        cac_data["cac_y"] = cac_y
+    
+        return cac_data
+    

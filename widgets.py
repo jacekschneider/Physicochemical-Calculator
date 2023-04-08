@@ -1,18 +1,20 @@
 import numpy as np
 import pyqtgraph as pg
+import pathlib
+from multipledispatch import dispatch
 from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider
 from PyQt6.QtCore import pyqtSignal as Signal, QDir
 from PyQt6.QtGui import  QFileSystemModel
 from PyQt6.uic.load_ui import loadUi
-from utils import get_data, pens, read_single_file, get_concentrations
 import utils as us
+from utils import Measurement, RMSE
 
 import pandas as pd
 from sklearn.linear_model import LinearRegression
         
           
 class WidgetNavigation(QWidget):
-    emit_path_folder = Signal(str)
+    emit_dirpath = Signal(str)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         loadUi("UI/ui_navigation.ui", self)
@@ -29,10 +31,11 @@ class WidgetNavigation(QWidget):
     def open_file_dialog(self):
         path_folder = QFileDialog.getExistingDirectory(
             self,
-            "Select Directory"
+            "Select Directory",
+            directory=str(pathlib.Path().absolute())
         )
         if path_folder != "":
-            self.emit_path_folder.emit(path_folder)
+            self.emit_dirpath.emit(path_folder)
             self.le_path.setText(path_folder)
             self.view_files.setModel(self.model)
             root_index = self.model.index(QDir.cleanPath(path_folder))
@@ -53,57 +56,51 @@ class WidgetCAC(QWidget):
         
         self.items_plot = []
         self.items_text = []
+        self.rmse_data = None
         
         self.graph.showGrid(x=True, y=True)
         # self.legend = self.graph.addLegend(labelTextColor="w", labelTextSize="12")
         # self.legend.anchor((0,0),(0.7,0.1))
-        self.styles = {'color':'white', 'font-size':'15px'}
+        self.styles = {'color':'white', 'font-size':'17px'}
         self.graph.setLabel('bottom', 'logC, mg/ml', **self.styles)
         self.graph.setLabel('left', 'I1/I3', **self.styles)
     
-    def load(self, path:str):
+    def load(self, rmse_data:RMSE):
         self.clear()
-        data = us.get_data(path)
-        peaks = us.get_peaks(data)
-        regdata = us.prepare_regression_data(peaks) # this can be plotted
-        model_data = us.get_models(regdata)
-        R2val, RMSEval = us.choose_models_frame_id(model_data)
-        model1,model2 = model_data.loc[RMSEval,['model1','model2']]
+        self.rmse_data = rmse_data
+        self.draw()
         
-        self.draw(regdata, RMSEval, model1, model2)
+    def draw(self):
         
-    def draw(self, regdata: pd.DataFrame, model_frame_id: int, model1: LinearRegression, model2: LinearRegression):
-
-        ## data plots
-        X = regdata.loc['X'].to_numpy()
-        Y = regdata.loc['Y'].to_numpy()
-        M1b0, M1b1 = model1.intercept_,model1.coef_
-        M2b0, M2b1 = model2.intercept_,model2.coef_
-
-        x1,x2 = X[:model_frame_id], X[model_frame_id:]
-        y1,y2 = Y[:model_frame_id], Y[model_frame_id:]
+        X = self.rmse_data.regdata.loc['X'].to_numpy()
+        Y = self.rmse_data.regdata.loc['Y'].to_numpy()
+        cac_x = self.rmse_data.cac_data["cac_x"]
+        cac_y = self.rmse_data.cac_data["cac_y"]
+        
+        model_id = self.rmse_data.model_id
+        x1,x2 = X[:model_id], X[model_id:]
+        y1,y2 = Y[:model_id], Y[model_id:]
         
         self.items_plot.append(self.graph.plot(x1, y1, pen=None, symbol='o', symbolPen=pg.mkPen("b"),symbolBrush=pg.mkBrush("b"),  symbolSize=7))
         self.items_plot.append(self.graph.plot(x2, y2, pen=None, symbol='o', symbolPen=pg.mkPen("r"),symbolBrush=pg.mkBrush("r"),  symbolSize=7))
-        self.abline(M1b1,M1b0)
-        self.abline(M2b1,M2b0)
-        ## CAC
-        xcor = us.CAC(model1, model2)
-        ycor = M1b1*xcor + M1b0
-        self.items_plot.append(self.graph.plot(xcor, ycor, pen=None, symbol='d', symbolPen=pg.mkPen("g"),symbolBrush=pg.mkBrush("g"),  symbolSize=9))
-        pos_x = round(xcor[0], 3)
-        pos_y = round(ycor[0], 3)
+        self.abline(self.rmse_data.cac_data["a1"], self.rmse_data.cac_data["b1"], start=-3.1, stop=cac_x+0.1, step=0.05)
+        self.abline(self.rmse_data.cac_data["a2"], self.rmse_data.cac_data["b2"], start=cac_x-0.1, stop=0.1, step=0.05)
+
+        self.items_plot.append(self.graph.plot(cac_x, cac_y, pen=None, symbol='d', symbolPen=pg.mkPen("g"),symbolBrush=pg.mkBrush("g"),  symbolSize=9))
+        pos_x = round(cac_x[0], 3)
+        pos_y = round(cac_y[0], 3)
         item_text = pg.TextItem(text="CAC = [{}, {}]".format(pos_x, pos_y), color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
-        item_text.setPos(xcor[0], ycor[0])
+        item_text.setPos(cac_x[0], cac_y[0])
         self.items_text.append(item_text)
         self.graph.addItem(item_text)
         
         
         
-    def abline(self, slope, intercept):
-        axes = self.graph.getAxis('bottom')
-        x_vals = np.array(axes.range)
-        y_vals = intercept + slope * x_vals
+    def abline(self, a, b, start, stop, step):
+        # axes = self.graph.getAxis('bottom')
+        # x_vals = np.array(axes.range)
+        x_vals = np.arange(start=start, stop=stop, step=step)
+        y_vals = b + a * x_vals
         self.items_plot.append(self.graph.plot(x_vals, y_vals, pen=pg.mkPen("w")))
     
     def clear(self):
@@ -121,29 +118,45 @@ class WidgetData(QWidget):
         super().__init__(*args, **kwargs)
         loadUi("UI/ui_data.ui", self)
         
+        self.measurements:list[Measurement] = []
         #Graph Items
         self.items_plot = []
         
         self.graph.showGrid(x=True, y=True)
         self.legend = self.graph.addLegend(labelTextColor="w", labelTextSize="12")
         self.legend.anchor((0,0),(0.7,0.1))
-        self.styles = {'color':'white', 'font-size':'15px'}
+        self.styles = {'color':'white', 'font-size':'17px'}
         self.graph.setLabel('bottom', 'Wavelength, nm', **self.styles)
         self.graph.setLabel('left', 'Intensity', **self.styles)
 
-    def load(self, path:str):
-        self.clear()
-        data = get_data(path)
-        data.dropna(how="all", axis="index", inplace=True)
-        x = data.index.values
-        for (index, column) in enumerate(data):
-            title = column
-            y= data[column].values
-            self.draw(x, y, title, pen_index=index)
-              
-    def draw(self, x:np.array, y:np.array, title:str, pen_index:int=0):
-        item_plot = self.graph.plot(x,y,pen=None, symbol='o', symbolPen=pens[pen_index%len(pens)],symbolBrush=pg.mkBrush(0,0,0),  symbolSize=7, name=f"concentration = {title}")
+    def load(self, measurements:list):
+        self.measurements = measurements
+        self.draw()
+        
+    @dispatch(Measurement)                  
+    def draw(self, measurement:Measurement):
+        pen = pg.mkPen(measurement.pen_color) if measurement.pen_enabled else None
+        item_plot = self.graph.plot(
+            x=measurement.data.index.values,
+            y=measurement.data['Y'].to_numpy(),
+            pen=pen,
+            symbol=measurement.symbol,
+            symbolPen=pg.mkPen(measurement.pen_color),
+            symbolBrush=pg.mkBrush(measurement.symbol_brush_color),
+            symbolSize=measurement.symbol_size,
+            name=measurement.name
+        )
         self.items_plot.append(item_plot)
+    
+    @dispatch()
+    def draw(self):
+        self.clear()
+        for (index, measurement) in enumerate(self.measurements):
+            if measurement.enabled:
+                pen_index = np.random.randint(0, 6)
+                pen_color = us.colors[pen_index]
+                self.measurements[index].set_pen_color(pen_color) 
+                self.draw(measurement)
         
     def clear(self):
         for item in self.items_plot:
@@ -158,17 +171,16 @@ class WidgetData(QWidget):
     def dropEvent(self, e):
         view = e.source()
         self.clear()
+        for (index, measurement) in enumerate(self.measurements):
+            self.measurements[index].set_enabled(False)
         for item in view.selectedIndexes():
             path = view.model().filePath(item)
             path_ending = path.split('.')[-1]
+            filename = path.split('/')[-1]
             if path_ending == 'txt':
-                data = read_single_file(path, ignore_X=False)
-                data.set_index('X', inplace=True)
-                data.dropna(inplace=True)
-                x = data.index.values
-                y = data['Y'].values
-                title = get_concentrations([path])[0]
-                # JSCH! -> upgrade pen selection
-                pen_index = np.random.randint(0, 6)
-                self.draw(x, y, title, pen_index)
+                for (index, measurement) in enumerate(self.measurements):
+                    if filename == measurement.filename:
+                        self.measurements[index].set_enabled(True)
+                    
+        self.draw()
         e.accept()
