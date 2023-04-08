@@ -145,6 +145,8 @@ def example_plot(regdata: pd.DataFrame, model_frame_id: int, model1: LinearRegre
     ## CAC
     xcor = CAC(model1, model2)
     ycor = M1b1*xcor + M1b0
+    print(xcor)
+    print(ycor)
     plt.plot(xcor, ycor, 'g*')
     ## The plot is not scaled properly
     plt.show()
@@ -161,11 +163,11 @@ class Measurement():
     encoding : str = 'utf-8'
     separator : str = ','
     filename : str = field(init=False)
-    concentration : str = field(init=False)
+    concentration : float = field(init=False)
     data : pd.Series = field(init=False)
     
-    peak1 : int = 373
-    peak2 : int = 374
+    peak1_raw : int = 373
+    peak2_raw : int = 384
     window_width : int = 3
     peaks:dict = field(init=False)
     
@@ -191,7 +193,7 @@ class Measurement():
         filename = filename.replace('.txt','').replace(',','.')
         # assuming there may be numbers in the filename, but not after the concentration
         con = re.findall('\d+(?:\.\d+)?', filename)[-1] # extracts floats and integers
-        concentration= str(float(con))
+        concentration= float(con)
 
         raw = pd.read_csv(self.path, encoding=self.encoding, sep=self.separator)
         Yval = raw[raw.columns[raw.columns.str.startswith('Y')]]
@@ -206,8 +208,8 @@ class Measurement():
         object.__setattr__(self, 'concentration', concentration)
         
     def load_peaks(self):
-        P1_window_low, P1_window_high = self.peak1 - self.window_width//2, self.peak1 + self.window_width//2
-        P2_window_low, P2_window_high = self.peak2 - self.window_width//2, self.peak2 + self.window_width//2
+        P1_window_low, P1_window_high = self.peak1_raw - self.window_width//2, self.peak1_raw + self.window_width//2
+        P2_window_low, P2_window_high = self.peak2_raw - self.window_width//2, self.peak2_raw + self.window_width//2
         P1, P2 = self.data.loc[P1_window_low:P1_window_high], self.data.loc[P2_window_low:P2_window_high]
         
         peak1_max, peak2_max = P1.max(),P2.max()
@@ -252,7 +254,11 @@ class Measurement():
     def set_enabled(self, state:bool):
         object.__setattr__(self, 'enabled', state)
 
-    
+@dataclass(frozen=True)
+class RMSE():
+    regdata : pd.DataFrame
+    model_id : int
+    cac_data : dict
     
 if __name__ == '__main__': # for testing purposes
     import matplotlib.pyplot as plt
