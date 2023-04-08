@@ -1,5 +1,3 @@
-import re
-import pandas as pd
 from pathlib import Path
 from utils import Measurement
 from PyQt6.QtWidgets import QFileDialog
@@ -32,6 +30,7 @@ class ReportWorker(QObject):
             canvas.showPage()
             canvas.save()
 
+
 class SettingsWorker(QObject):
     emit_measurements = Signal(list)
     
@@ -43,8 +42,17 @@ class SettingsWorker(QObject):
             measurement = Measurement(path=file, encoding="utf-16", separator="\t")
             self.measurements.append(measurement)
         self.emit_measurements.emit(self.measurements)
+ 
             
+class CalculatorWorker(QObject):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.measurements:list[Measurement] = []
 
+    @Slot(list)
+    def load(self, measurements:list):
+        self.measurements = measurements
 
         
     

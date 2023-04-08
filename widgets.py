@@ -6,7 +6,6 @@ from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider
 from PyQt6.QtCore import pyqtSignal as Signal, QDir
 from PyQt6.QtGui import  QFileSystemModel
 from PyQt6.uic.load_ui import loadUi
-from utils import get_data, pens, read_single_file, get_concentrations
 import utils as us
 from utils import Measurement
 
