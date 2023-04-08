@@ -11,7 +11,6 @@ from sklearn.linear_model import LinearRegression
 
 class ReportWorker(QObject):
 
-    @Slot(list)
     def set_measurements(self, measurements:list):
         self.measurements = measurements
         
@@ -38,7 +37,6 @@ class ReportWorker(QObject):
 class SettingsWorker(QObject):
     emit_measurements = Signal(list)
     
-    @Slot(str)
     def load(self, dirpath):
         self.measurements:list[Measurement] = []
         files:list[str] = [str(file)for file in list(Path(dirpath).glob('*.txt'))]
@@ -54,7 +52,6 @@ class CalculatorWorker(QObject):
         super().__init__(*args, **kwargs)
         self.measurements:list[Measurement] = []
 
-    @Slot(list)
     def load(self, measurements:list):
         self.measurements = measurements
         regression_data = self.__prepare_regression_data()
