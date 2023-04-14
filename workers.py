@@ -6,6 +6,7 @@ from utils import Measurement, RMSE
 from PyQt6.QtWidgets import QFileDialog
 from PyQt6.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QObject
 from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib.pagesizes import A4
 from sklearn.linear_model import LinearRegression
 
 
@@ -13,6 +14,8 @@ class ReportWorker(QObject):
 
     def set_measurements(self, measurements:list):
         self.measurements = measurements
+        # self.min_concentration = min([i.concentration for i in self.measurements])
+        # self.max_concentration = max([i.concentration for i in self.measurements])
         
     def generate(self):
         file_path, selected_filter = QFileDialog.getSaveFileName(
@@ -21,15 +24,57 @@ class ReportWorker(QObject):
             filter="PDF File (*.pdf)"
         )
         if file_path:
-            canvas = Canvas(file_path, pagesize=(652, 792))
-            canvas.setFillColorRGB(1,0,1)
-            canvas.rect(5, 5, 652-10, 792-10, fill=1)
-            canvas.setFillColorRGB(1,1,1)
-            canvas.rect(10, 10, 652-20, 792-20, fill=1)
-            canvas.setFillColorRGB(0,0,0)
-            canvas.setFontSize(18)
-            canvas.drawString(100, 750, "Physicochemical-Calculator")
-            canvas.setTitle("Physicochemical-Calculator")
+            canvas = Canvas(file_path, pagesize = A4)
+            width, height = A4
+            plot_width, plot_height = 400, 240
+            font = "Times-Roman"
+            offset = 0
+
+            def divider(string: str):
+                canvas.setFillColorRGB(0.05, 0.44, 0.69)
+                canvas.setStrokeColorRGB(0.05, 0.44, 0.69)
+                canvas.rect(40 , height - 55.5 + offset, width = width - 80, height = 15, fill=True)
+                canvas.setFillColorRGB(1,1,1)
+                canvas.setStrokeColorRGB(0,0,0)
+                text = canvas.beginText(width/6 - 35, height - 52 + offset)
+                text.setFont(font, 12)
+                text.textLine(string)
+                canvas.drawText(text)
+                canvas.setFillColorRGB(0,0,0)
+                # canvas.stringWidth(string, font, 12)
+
+            # width 595.2755905511812
+            # height 841.8897637795277
+
+            divider("CAC plot")
+
+            canvas.drawImage("sampleplot.png", 100, height - (60 + plot_height) + offset, width=plot_width, height=plot_height) 
+            canvas.setTitle("CAC analysis")
+
+            offset -= plot_height + 50
+
+            divider("Sample text")
+
+            offset -= 80
+
+            text = canvas.beginText(50, height + offset)
+            text.textLine(f"CAC: {0.088}") # TODO figure out a way to get the unit automatically
+            text.textLine(f"Mimimum concentration in the experiment: {0.001}")
+            text.textLine(f"Maximum concentration in the experiment: {1}")
+            canvas.drawText(text)
+
+            divider("Chosen model metrics")
+
+            offset -= 80
+
+            text = canvas.beginText(50, height + offset)
+            text.textLine(f"Model parameters (y = ax + b) a: {0.088} b: {0.000011}")
+            text.textLine(f"Model Root Mean Square Error: {0.001}")
+            text.textLine(f"Model coeffcient of determiantion (R\u00b2): {1}")
+            canvas.drawText(text)
+
+            #height and width should be scaled after we get the actual measurements
+
             canvas.showPage()
             canvas.save()
 
