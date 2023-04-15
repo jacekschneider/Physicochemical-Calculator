@@ -18,6 +18,7 @@ class MainWindow(QMainWindow):
         self.widget_navigation.emit_dirpath.connect(self.settings_worker.load)
         self.settings_worker.emit_measurements.connect(self.widget_data.load)
         self.settings_worker.emit_measurements.connect(self.calculator_worker.load)
+        self.settings_worker.emit_measurements.connect(self.report_worker.set_measurements)
         self.calculator_worker.emit_RMSE.connect(self.widget_cac.load)
         self.widget_navigation.pb_clear_data.clicked.connect(self.widget_data.clear)
         self.action_generate.triggered.connect(self.report_worker.generate)

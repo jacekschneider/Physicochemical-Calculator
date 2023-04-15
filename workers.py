@@ -11,11 +11,19 @@ from sklearn.linear_model import LinearRegression
 
 
 class ReportWorker(QObject):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.offset = -55
+        # the colors chould be adjusted
+        self.divider_banner_color = (0.1, 0.44, 0.69)
+        self.divider_text_color = (1,1,1)
+        self.base_text_color = (0,0,0)
 
     def set_measurements(self, measurements:list):
         self.measurements = measurements
-        # self.min_concentration = min([i.concentration for i in self.measurements])
-        # self.max_concentration = max([i.concentration for i in self.measurements])
+        self.min_concentration = min([i.concentration for i in self.measurements])
+        self.max_concentration = max([i.concentration for i in self.measurements])
         
     def generate(self):
         file_path, selected_filter = QFileDialog.getSaveFileName(
@@ -25,58 +33,65 @@ class ReportWorker(QObject):
         )
         if file_path:
             canvas = Canvas(file_path, pagesize = A4)
-            width, height = A4
-            plot_width, plot_height = 400, 240
+            page_width, page_height = A4
+            plot_width, plot_height = 500, 300
             font = "Times-Roman"
-            offset = 0
+            
 
             def divider(string: str):
-                canvas.setFillColorRGB(0.05, 0.44, 0.69)
-                canvas.setStrokeColorRGB(0.05, 0.44, 0.69)
-                canvas.rect(40 , height - 55.5 + offset, width = width - 80, height = 15, fill=True)
-                canvas.setFillColorRGB(1,1,1)
-                canvas.setStrokeColorRGB(0,0,0)
-                text = canvas.beginText(width/6 - 35, height - 52 + offset)
+                canvas.setFillColorRGB(*self.divider_banner_color)
+                canvas.setStrokeColorRGB(*self.divider_banner_color)
+                canvas.rect(40 , page_height + self.offset, width = page_width - 80, height = 15, fill=True)
+                canvas.setFillColorRGB(*self.divider_text_color)
+                canvas.setStrokeColorRGB(*self.base_text_color)
+                text = canvas.beginText(page_width/6 - 35, page_height + self.offset + 4)
                 text.setFont(font, 12)
                 text.textLine(string)
                 canvas.drawText(text)
-                canvas.setFillColorRGB(0,0,0)
+                canvas.setFillColorRGB(*self.base_text_color)
+                self.offset -= 14
                 # canvas.stringWidth(string, font, 12)
-
-            # width 595.2755905511812
-            # height 841.8897637795277
+            
+            def paragraph(title: str, *args: str):
+                if abs(self.offset - (14 + 14.6*len(args))) >= page_height:
+                    canvas.showPage()
+                    self.offset = -55
+                divider(title)
+                
+                text = canvas.beginText(50, page_height + self.offset)
+                for line in args:
+                    text.textLine(line)
+                self.offset -= 14.6*len(args) + 6
+                canvas.drawText(text)
 
             divider("CAC plot")
+            canvas.drawImage("sampleplot.png", 50, page_height - plot_height + self.offset, width=plot_width, height=plot_height) 
+            self.offset -= plot_height
 
-            canvas.drawImage("sampleplot.png", 100, height - (60 + plot_height) + offset, width=plot_width, height=plot_height) 
-            canvas.setTitle("CAC analysis")
+            paragraph("Sample text",
+                    f"CAC: {0.088}",
+                    f"Mimimum concentration in the experiment: {self.min_concentration}",
+                    f"Maximum concentration in the experiment: {self.max_concentration}")
+            
+            divider("CAC plot")
+            canvas.drawImage("sampleplot.png", 50, page_height - plot_height + self.offset, width=plot_width, height=plot_height) 
+            self.offset -= plot_height
+            
+            # canvas.setTitle("CAC analysis")
 
-            offset -= plot_height + 50
-
-            divider("Sample text")
-
-            offset -= 80
-
-            text = canvas.beginText(50, height + offset)
-            text.textLine(f"CAC: {0.088}") # TODO figure out a way to get the unit automatically
-            text.textLine(f"Mimimum concentration in the experiment: {0.001}")
-            text.textLine(f"Maximum concentration in the experiment: {1}")
-            canvas.drawText(text)
-
-            divider("Chosen model metrics")
-
-            offset -= 80
-
-            text = canvas.beginText(50, height + offset)
-            text.textLine(f"Model parameters (y = ax + b) a: {0.088} b: {0.000011}")
-            text.textLine(f"Model Root Mean Square Error: {0.001}")
-            text.textLine(f"Model coeffcient of determiantion (R\u00b2): {1}")
-            canvas.drawText(text)
-
-            #height and width should be scaled after we get the actual measurements
-
-            canvas.showPage()
+            paragraph("Chosen model metrics",
+                    f"Model parameters (y = ax + b) a: {0.088} b: {0.000011}",
+                    f"Model Root Mean Square Error: {0.001}",
+                    f"Model coeffcient of determiantion (R\u00b2): {1}",
+                    f"Model coeffcient of determiantion (R\u00b2): {1}",
+                    f"Model coeffcient of determiantion (R\u00b2): {1}",
+                    f"Model coeffcient of determiantion (R\u00b2): {1}",
+                    f"Model coeffcient of determiantion (R\u00b2): {1}",)
             canvas.save()
+            # reinitialising the offset
+            # otherwise multiple report generation using
+            # the same instance of the class would start the text generation lower
+            self.offset = -55 
 
 
 class SettingsWorker(QObject):
