@@ -4,7 +4,7 @@ import pathlib
 from multipledispatch import dispatch
 from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider
 from PyQt6.QtCore import pyqtSignal as Signal, QDir
-from PyQt6.QtGui import  QFileSystemModel
+from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel
 from PyQt6.uic.load_ui import loadUi
 import utils as us
 from utils import Measurement, RMSE
@@ -113,6 +113,7 @@ class WidgetCAC(QWidget):
         while len(self.items_text):
             self.items_text.pop()
         
+        
 class WidgetData(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -184,3 +185,14 @@ class WidgetData(QWidget):
                     
         self.draw()
         e.accept()
+        
+
+class WidgetGraphCustomization(QWidget):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        loadUi("UI/ui_settings_graph_data.ui", self)
+        self.model = QStandardItemModel()
+        self.model.setHorizontalHeaderLabels(["title", "window width", "peak1", "peak2", "pen", "pen_enable", "symbol", "symbol_fill_color", "symbol_size", "enable"])
+        self.tree.setModel(self.model)
+        
