@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 from math import log10
 from pathlib import Path
 from utils import Measurement, RMSE
@@ -8,7 +9,8 @@ from PyQt6.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QObject
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from sklearn.linear_model import LinearRegression
-
+from tempfile import NamedTemporaryFile
+import pyqtgraph.exporters
 
 class ReportWorker(QObject):
     
@@ -24,6 +26,13 @@ class ReportWorker(QObject):
         self.measurements = measurements
         self.min_concentration = min([i.concentration for i in self.measurements])
         self.max_concentration = max([i.concentration for i in self.measurements])
+
+    ## both plots will be required
+    def set_CAC_plot(self, exported_image):
+        self.CAC_plot = exported_image
+
+    def set_dataview_plot(self, exported_image):
+        self.dataview_plot = exported_image
         
     def generate(self):
         file_path, selected_filter = QFileDialog.getSaveFileName(
@@ -63,6 +72,24 @@ class ReportWorker(QObject):
                     text.textLine(line)
                 self.offset -= 14.6*len(args) + 6
                 canvas.drawText(text)
+            
+            def draw_plot(title: str, exported_plot):
+                if abs(self.offset - (plot_height+10)) >= page_height:
+                    canvas.showPage()
+                    self.offset = -55
+                with NamedTemporaryFile("r+b", delete=False, prefix="CAC_calculator", suffix='.png') as pl:
+                    exported_plot.parameters()['width'] = plot_width
+                    exported_plot.export(pl.name)
+                    divider(title)
+                    canvas.drawImage(pl.name, 50, page_height - plot_height + self.offset + 10, width=plot_width, height=plot_height)
+                    self.offset -= (plot_height+10)
+                    TEMP_FILENAME = pl.name
+                # Using os.remove because the auto delete
+                # caused OSError: Cannot open resource
+                os.remove(TEMP_FILENAME)
+                del TEMP_FILENAME
+
+            # draw_plot("CAC plot", self.CAC_plot) # example usecase
 
             divider("CAC plot")
             canvas.drawImage("sampleplot.png", 50, page_height - plot_height + self.offset, width=plot_width, height=plot_height) 
