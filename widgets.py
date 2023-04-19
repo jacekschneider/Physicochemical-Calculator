@@ -2,9 +2,9 @@ import numpy as np
 import pyqtgraph as pg
 import pathlib
 from multipledispatch import dispatch
-from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider
+from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox, QComboBox, QColorDialog, QPushButton
 from PyQt6.QtCore import pyqtSignal as Signal, QDir
-from PyQt6.QtGui import  QFileSystemModel
+from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem
 from PyQt6.uic.load_ui import loadUi
 import utils as us
 from utils import Measurement, RMSE
@@ -113,6 +113,7 @@ class WidgetCAC(QWidget):
         while len(self.items_text):
             self.items_text.pop()
         
+        
 class WidgetData(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -184,3 +185,32 @@ class WidgetData(QWidget):
                     
         self.draw()
         e.accept()
+        
+
+class WidgetGraphCustomization(QWidget):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        loadUi("UI/ui_settings_graph_data.ui", self)
+        self.model = QStandardItemModel()
+        self.labels = ["title", "window width", "peak1", "peak2", "pen", "pen_enable", "symbol", "symbol_fill_color", "symbol_size", "enable"]
+        self.model.setHorizontalHeaderLabels(self.labels)
+        
+        self.tree.setModel(self.model)
+        self.create_row()
+        
+    def create_row(self):
+        self.button_pen = QPushButton()
+        self.button_symbol_fill = QPushButton()
+        self.model.appendRow([QStandardItem() for i in self.labels])
+        self.tree.setIndexWidget(self.model.index(0, 0), QLineEdit("title"))
+        self.tree.setIndexWidget(self.model.index(0, 1), QLineEdit("3"))
+        self.tree.setIndexWidget(self.model.index(0, 2), QLineEdit("373"))
+        self.tree.setIndexWidget(self.model.index(0, 3), QLineEdit("384"))
+        self.tree.setIndexWidget(self.model.index(0, 4), self.button_pen)
+        self.tree.setIndexWidget(self.model.index(0, 5), QCheckBox())
+        self.tree.setIndexWidget(self.model.index(0, 6), QComboBox())
+        self.tree.setIndexWidget(self.model.index(0, 7), self.button_symbol_fill)
+        self.tree.setIndexWidget(self.model.index(0, 8), QLineEdit("7"))
+        self.tree.setIndexWidget(self.model.index(0, 9), QCheckBox())
+

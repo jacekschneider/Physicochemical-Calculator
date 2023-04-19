@@ -88,9 +88,16 @@
     </property>
     <addaction name="action_generate"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="action_graph_customization"/>
+   </widget>
    <addaction name="menuLanguages"/>
-   <addaction name="menuHelp"/>
    <addaction name="menuReport"/>
+   <addaction name="menuSettings"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionEnglish">
@@ -128,6 +135,11 @@
   <action name="action_generate">
    <property name="text">
     <string>Generate ...</string>
+   </property>
+  </action>
+  <action name="action_graph_customization">
+   <property name="text">
+    <string>Graph Customization...</string>
    </property>
   </action>
  </widget>
