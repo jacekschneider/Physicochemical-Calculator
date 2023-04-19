@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         self.show()
         
     def show_customization(self):
-        self.widget_customization = WidgetGraphCustomization()
+        self.widget_customization = WidgetGraphCustomization(self.settings_worker.get_measurements())
         self.widget_customization.show()
             
 if __name__ == '__main__':

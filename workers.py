@@ -129,8 +129,12 @@ class SettingsWorker(QObject):
         files:list[str] = [str(file)for file in list(Path(dirpath).glob('*.txt'))]
         for file in files:
             measurement = Measurement(path=file, encoding="utf-16", separator="\t")
+            print(measurement)
             self.measurements.append(measurement)
         self.emit_measurements.emit(self.measurements)
+        
+    def get_measurements(self)->list:
+        return self.measurements
  
             
 class CalculatorWorker(QObject):
@@ -203,3 +207,7 @@ class CalculatorWorker(QObject):
     
         return cac_data
     
+
+        
+        
+        
