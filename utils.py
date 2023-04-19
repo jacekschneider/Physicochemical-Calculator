@@ -171,7 +171,7 @@ class Measurement():
     window_width : int = 3
     peaks:dict = field(init=False)
     
-    pen_color = "w"
+    pen_color : list = field(default_factory=lambda:[0, 0, 0], init=False)
     pen_enabled : bool = field(default=False, init=False)
     symbol : str = field(default="o", init=False)
     symbol_brush_color : list = field(default_factory=lambda:[0, 0, 0], init=False)
@@ -203,7 +203,6 @@ class Measurement():
         Yval = Yval.mean(axis=1)
         Xval = raw['X']
         data = pd.concat([Xval,Yval],axis=1, keys=['X','Y'])
-        print(data)
         data.dropna(inplace=True)
         object.__setattr__(self, 'data', data.set_index('X'))
         object.__setattr__(self, 'concentration', concentration)

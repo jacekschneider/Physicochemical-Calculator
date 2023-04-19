@@ -83,6 +83,7 @@ class WidgetCAC(QWidget):
         
         self.items_plot.append(self.graph.plot(x1, y1, pen=None, symbol='o', symbolPen=pg.mkPen("b"),symbolBrush=pg.mkBrush("b"),  symbolSize=7))
         self.items_plot.append(self.graph.plot(x2, y2, pen=None, symbol='o', symbolPen=pg.mkPen("r"),symbolBrush=pg.mkBrush("r"),  symbolSize=7))
+        #JSCH! -> abline range upgrade
         self.abline(self.rmse_data.cac_data["a1"], self.rmse_data.cac_data["b1"], start=-3.1, stop=cac_x+0.1, step=0.05)
         self.abline(self.rmse_data.cac_data["a2"], self.rmse_data.cac_data["b2"], start=cac_x-0.1, stop=1.2, step=0.05)
 
@@ -154,8 +155,7 @@ class WidgetData(QWidget):
         self.clear()
         for (index, measurement) in enumerate(self.measurements):
             if measurement.enabled:
-                pen_index = np.random.randint(0, 6)
-                pen_color = us.colors[pen_index]
+                pen_color = [np.random.randint(100, 255) for x in range(3)]
                 self.measurements[index].set_pen_color(pen_color) 
                 self.draw(measurement)
         
@@ -194,7 +194,6 @@ class WidgetGraphCustomization(QWidget):
         loadUi("UI/ui_settings_graph_data.ui", self)
         
         self.raw_measurements = measurements
-        print(self.raw_measurements[0])
         self.model = QStandardItemModel()
         self.labels = ["title", "window width", "peak1", "peak2", "pen", "pen_enable", "symbol", "symbol_fill_color", "symbol_size", "enable"]
         self.model.setHorizontalHeaderLabels(self.labels)
@@ -222,6 +221,7 @@ class SettingsRow(QObject):
     def __init__(self, measurement:Measurement, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
+        self.measurement = measurement
         self.le_title = QLineEdit("titlex")
         self.le_window_width = QLineEdit("3")
         self.le_peak1 = QLineEdit("373")
@@ -232,6 +232,8 @@ class SettingsRow(QObject):
         self.button_symbol_fill = QPushButton()
         self.le_symbol_size = QLineEdit("7")
         self.chb_enable = QCheckBox()
+        
+        self.refresh()
         
         self.button_pen.clicked.connect(self.test)
     def test(self):
@@ -250,6 +252,15 @@ class SettingsRow(QObject):
         list_widget.append(self.le_symbol_size)
         list_widget.append(self.chb_enable)
         return list_widget
+    
+    def refresh(self):
+        self.le_title.setText(self.measurement.name)
+        self.le_title.setText(str(self.measurement.window_width))
+        self.le_peak1.setText(str(self.measurement.peak1_raw))
+        self.le_peak2.setText(str(self.measurement.peak2_raw))
+        pen_color = self.measurement.pen_color
+        self.button_pen.setStyleSheet("background-color:rgb({},{},{})".format(pen_color[0],pen_color[1],pen_color[2]))
+        
     
 
 # Create objects as rows->widget_event=update object's measurement-> get all new measuremnts and emit new measurments list
