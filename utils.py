@@ -160,7 +160,7 @@ for color in colors:
 class Measurement():
     
     path : str
-    encoding : str = 'utf-8'
+    encoding : str = 'UTF-16'
     separator : str = ','
     filename : str = field(init=False)
     concentration : float = field(init=False)
@@ -199,7 +199,7 @@ class Measurement():
         Yval = raw[raw.columns[raw.columns.str.startswith('Y')]]
         # filtering out Y values, excluding every other column because of bad data
         # may heve to be removed
-        Yval = Yval[1::2]
+        Yval = Yval[Yval.columns[1::2]]
         Yval = Yval.mean(axis=1)
         Xval = raw['X']
         data = pd.concat([Xval,Yval],axis=1, keys=['X','Y'])
