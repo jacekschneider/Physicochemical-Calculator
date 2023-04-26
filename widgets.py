@@ -4,7 +4,7 @@ import pathlib
 from multipledispatch import dispatch
 from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox, QComboBox, QColorDialog, QPushButton
 from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject
-from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem
+from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator
 from PyQt6.uic.load_ui import loadUi
 import utils as us
 from utils import Measurement, RMSE
@@ -189,43 +189,53 @@ class WidgetData(QWidget):
 
 class WidgetGraphCustomization(QWidget):
     
-    def __init__(self, measurements:Measurement, *args, **kwargs):
+    def __init__(self, measurements:list, *args, **kwargs):
         super().__init__(*args, **kwargs)
         loadUi("UI/ui_settings_graph_data.ui", self)
         
-        self.raw_measurements = measurements
+        self.measurements_raw:list[Measurement] = measurements
+        self.measurements_new:list[Measurement] = []
         self.model = QStandardItemModel()
         self.labels = ["title", "window width", "peak1", "peak2", "pen", "pen_enable", "symbol", "symbol_fill_color", "symbol_size", "enable"]
         self.model.setHorizontalHeaderLabels(self.labels)
         
         self.tree.setModel(self.model)
-        self.create_row(index_row = 0, measurement=Measurement(r"D:\Semestr10\PBL\Program\PBL\Data\pomiar1\CMK 9 - 1mg-ml.txt", encoding="utf-16", separator="\t"))
+        for (index, measurement) in enumerate(self.measurements_raw):
+            self.create_row(index_row = index, measurement=measurement)
         
     def create_row(self, index_row, measurement:Measurement):
-        self.button_pen = QPushButton()
-        self.button_symbol_fill = QPushButton()
         self.model.appendRow([QStandardItem() for i in self.labels])
         
         self.measurement = measurement
-        self.row = SettingsRow(self.measurement)
+        # Adding self as an argument was a crucial condition
+        self.row = SettingsRow(self.measurement, self)
         self.row_list = self.row.get_widgets()
         
         for (index_widget, widget) in enumerate(self.row_list):
             self.tree.setIndexWidget(self.model.index(index_row, index_widget), widget)
-            
         
-
 
 class SettingsRow(QObject):
     
     def __init__(self, measurement:Measurement, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
+        # Prepare widgets according to the measurement data
         self.measurement = measurement
         self.le_title = QLineEdit("titlex")
+        
         self.le_window_width = QLineEdit("3")
+        self.window_width_validator = QIntValidator(1, 10)
+        self.le_window_width.setValidator(self.window_width_validator)
+        
         self.le_peak1 = QLineEdit("373")
+        self.le_peak1_validator = QIntValidator(360, 380)
+        self.le_peak1.setValidator(self.le_peak1_validator)
+        
         self.le_peak2 = QLineEdit("384")
+        self.le_peak2_validator = QIntValidator(370, 390)
+        self.le_peak2.setValidator(self.le_peak2_validator)
+        
         self.button_pen = QPushButton()
         self.chb_pen_enable = QCheckBox()
         self.cob_symbol = QComboBox()
@@ -233,11 +243,52 @@ class SettingsRow(QObject):
         self.le_symbol_size = QLineEdit("7")
         self.chb_enable = QCheckBox()
         
-        self.refresh()
+        # Prepare connections
+        self.le_title.editingFinished.connect(self.change_title)
+        self.le_window_width.editingFinished.connect(self.change_window_width)
+        self.le_window_width.textEdited.connect(self.validate_window_width)
+        self.le_peak1.editingFinished.connect(self.change_peak1)
+        self.le_peak2.editingFinished.connect(self.change_peak2)
+        self.le_peak1.textEdited.connect(self.validate_peak1)
+        self.le_peak2.textEdited.connect(self.validate_peak2)
+        self.button_pen.clicked.connect(self.change_pen_colour)
         
-        self.button_pen.clicked.connect(self.test)
-    def test(self):
-        print("test")
+        # Inject measurement data into widgets
+        self.refresh()
+
+    
+    def change_title(self) ->None:
+        self.measurement.set_name(self.le_title.text())
+    
+    def change_window_width(self)->None:
+        self.measurement.set_window_width(int(self.le_window_width.text()))
+        
+    def change_peak1(self)->None:
+        self.measurement.set_peak1(int(self.le_peak1.text()))
+
+    def change_peak2(self)->None:
+        self.measurement.set_peak1(int(self.le_peak2.text()))
+        
+    def validate_window_width(self)->None:
+        state, _, __ = self.window_width_validator.validate(self.le_window_width.text(), 0)
+        if state == QValidator.State.Intermediate:
+            self.le_window_width.setStyleSheet("background-color:rgb({},{},{})".format(255,0,0))
+        else:
+            self.le_window_width.setStyleSheet("")
+            
+    def validate_peak1(self)->None:
+        state, _, __ = self.le_peak1_validator.validate(self.le_peak1.text(), 0)
+        if state == QValidator.State.Intermediate:
+            self.le_peak1.setStyleSheet("background-color:rgb({},{},{})".format(255,0,0))
+        else:
+            self.le_peak1.setStyleSheet("")
+
+    def validate_peak2(self)->None:
+        state, _, __ = self.le_peak2_validator.validate(self.le_peak2.text(), 0)
+        if state == QValidator.State.Intermediate:
+            self.le_peak2.setStyleSheet("background-color:rgb({},{},{})".format(255,0,0))
+        else:
+            self.le_peak2.setStyleSheet("")
         
     def get_widgets(self) -> list:
         list_widget = []
@@ -253,15 +304,25 @@ class SettingsRow(QObject):
         list_widget.append(self.chb_enable)
         return list_widget
     
+    def get_measurement(self) -> Measurement:
+        return self.measurement
+    
     def refresh(self):
         self.le_title.setText(self.measurement.name)
-        self.le_title.setText(str(self.measurement.window_width))
+        self.le_window_width.setText(str(self.measurement.window_width))
         self.le_peak1.setText(str(self.measurement.peak1_raw))
         self.le_peak2.setText(str(self.measurement.peak2_raw))
         pen_color = self.measurement.pen_color
         self.button_pen.setStyleSheet("background-color:rgb({},{},{})".format(pen_color[0],pen_color[1],pen_color[2]))
-        
-    
+        self.chb_pen_enable.setChecked(self.measurement.pen_enabled)
+        #todo self.cob_symbol
+        symbol_color = self.measurement.symbol_brush_color
+        self.button_symbol_fill.setStyleSheet("background-color:rgb({},{},{})".format(symbol_color[0],symbol_color[1],symbol_color[2]))
+        self.le_symbol_size.setText(str(self.measurement.symbol_size))
+        self.chb_enable.setChecked(self.measurement.enabled)
+
+    def change_pen_colour(self):
+        pass
 
 # Create objects as rows->widget_event=update object's measurement-> get all new measuremnts and emit new measurments list
 

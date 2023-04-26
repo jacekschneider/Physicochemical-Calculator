@@ -253,6 +253,15 @@ class Measurement():
         
     def set_enabled(self, state:bool):
         object.__setattr__(self, 'enabled', state)
+    
+    def set_window_width(self, width:int):
+        object.__setattr__(self, 'window_width', width)
+    
+    def set_peak1(self, peak:int):
+        object.__setattr__(self, "peak1_raw", peak)
+        
+    def set_peak2(self, peak:int):
+        object.__setattr__(self, "peak2_raw", peak)
 
 @dataclass(frozen=True)
 class RMSE():
