@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pyqtgraph as pg
 import re
+import colorsys
 from multipledispatch import dispatch
 from PyQt6.QtCore import QCoreApplication
 from pathlib import Path
@@ -186,6 +187,8 @@ class Measurement():
         self.load_data()
         self.load_peaks()
         self.set_name("Concentration = {}".format(self.concentration))
+        (r, g, b) = colorsys.hsv_to_rgb(np.random.random(), 1, 1)
+        self.set_pen_color([r*255, g*255, b*255])
         self.set_enabled(True)
     
     def load_data(self):

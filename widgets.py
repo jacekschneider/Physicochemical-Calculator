@@ -154,8 +154,6 @@ class WidgetData(QWidget):
         self.clear()
         for (index, measurement) in enumerate(self.measurements):
             if measurement.enabled:
-                pen_color = [np.random.randint(100, 255) for x in range(3)]
-                self.measurements[index].set_pen_color(pen_color) 
                 self.draw(measurement)
         
     def clear(self):
