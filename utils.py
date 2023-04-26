@@ -9,6 +9,8 @@ from sklearn.linear_model import LinearRegression ## pip install numpy scikit-le
 from math import log10
 from dataclasses import dataclass, field
 
+symbols = ["o", "t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d", "x"]
+
 def closest_value(input_list, input_value):
     arr = np.asarray(input_list)
     i = (np.abs(arr - input_value)).argmin()
@@ -237,7 +239,7 @@ class Measurement():
         object.__setattr__(self, 'pen_enabled', state)
         
     def set_symbol(self, symbol:str):
-        #JSCH!
+        #JSCH! -> validate symbol
         object.__setattr__(self, 'symbol', symbol)
     
     def set_symbol_brush_color(self, color:list):
@@ -245,7 +247,6 @@ class Measurement():
             object.__setattr__(self, 'symbol_brush_color', color)
     
     def set_symbol_size(self, size:int):
-        self.symbol_size = size
         object.__setattr__(self, 'symbol_size', size)
     
     def set_name(self, name:str):
@@ -278,3 +279,4 @@ if __name__ == '__main__': # for testing purposes
     R2val, RMSEval = choose_models_frame_id(model_data)
     model1,model2 = model_data.loc[RMSEval,['model1','model2']]
     example_plot(regdata, RMSEval, model1,model2)
+    

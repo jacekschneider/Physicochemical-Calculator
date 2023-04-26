@@ -6,8 +6,7 @@ from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, 
 from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject
 from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator
 from PyQt6.uic.load_ui import loadUi
-import utils as us
-from utils import Measurement, RMSE
+from utils import Measurement, RMSE, symbols
 
 import pandas as pd
 from sklearn.linear_model import LinearRegression
@@ -196,7 +195,7 @@ class WidgetGraphCustomization(QWidget):
         self.measurements_raw:list[Measurement] = measurements
         self.measurements_new:list[Measurement] = []
         self.model = QStandardItemModel()
-        self.labels = ["title", "window width", "peak1", "peak2", "pen", "pen_enable", "symbol", "symbol_fill_color", "symbol_size", "enable"]
+        self.labels = ["title", "window width (1-10)", "peak1 (360-380)", "peak2 (370-390)", "pen", "pen_enable", "symbol", "symbol_fill_color", "symbol_size (3-12)", "enable"]
         self.model.setHorizontalHeaderLabels(self.labels)
         
         self.tree.setModel(self.model)
@@ -223,6 +222,7 @@ class SettingsRow(QObject):
         # Prepare widgets according to the measurement data
         self.measurement = measurement
         self.le_title = QLineEdit("titlex")
+        self.le_title.setReadOnly(True)
         
         self.le_window_width = QLineEdit("3")
         self.window_width_validator = QIntValidator(1, 10)
@@ -238,9 +238,15 @@ class SettingsRow(QObject):
         
         self.button_pen = QPushButton()
         self.chb_pen_enable = QCheckBox()
+        
         self.cob_symbol = QComboBox()
+        self.cob_symbol.addItems(symbols)
+        
         self.button_symbol_fill = QPushButton()
+        
         self.le_symbol_size = QLineEdit("7")
+        self.le_symbol_size_validator = QIntValidator(3, 12)
+        self.le_symbol_size.setValidator(self.le_symbol_size_validator)
         self.chb_enable = QCheckBox()
         
         # Prepare connections
@@ -252,6 +258,12 @@ class SettingsRow(QObject):
         self.le_peak1.textEdited.connect(self.validate_peak1)
         self.le_peak2.textEdited.connect(self.validate_peak2)
         self.button_pen.clicked.connect(self.change_pen_colour)
+        self.chb_pen_enable.toggled.connect(self.change_pen_enable)
+        self.cob_symbol.activated.connect(self.change_symbol)
+        self.button_symbol_fill.clicked.connect(self.change_symbol_colour)
+        self.le_symbol_size.editingFinished.connect(self.change_symbol_size)
+        self.le_symbol_size.textEdited.connect(self.validate_symbol_size)
+        self.chb_enable.toggled.connect(self.change_enable)
         
         # Inject measurement data into widgets
         self.refresh()
@@ -268,6 +280,31 @@ class SettingsRow(QObject):
 
     def change_peak2(self)->None:
         self.measurement.set_peak1(int(self.le_peak2.text()))
+    
+    def change_pen_enable(self)->None:
+        self.measurement.set_pen_enabled(self.chb_pen_enable.isChecked())
+    
+    def change_symbol(self)->None:
+        self.measurement.set_symbol(self.cob_symbol.currentText())
+        print(self.measurement)
+
+    def change_pen_colour(self):
+        colour = QColorDialog.getColor()
+        rgb = [colour.red(), colour.green(), colour.blue()]
+        self.measurement.set_pen_color(rgb)
+        self.button_pen.setStyleSheet("background-color:rgb({},{},{})".format(rgb[0],rgb[1],rgb[2]))
+        
+    def change_symbol_colour(self):
+        colour = QColorDialog.getColor()
+        rgb = [colour.red(), colour.green(), colour.blue()]
+        self.measurement.set_symbol_brush_color(rgb)
+        self.button_symbol_fill.setStyleSheet("background-color:rgb({},{},{})".format(rgb[0],rgb[1],rgb[2]))
+
+    def change_symbol_size(self):
+        self.measurement.set_symbol_size(self.le_symbol_size.text())
+        
+    def change_enable(self):
+        self.measurement.set_enabled(self.chb_enable.isChecked())
         
     def validate_window_width(self)->None:
         state, _, __ = self.window_width_validator.validate(self.le_window_width.text(), 0)
@@ -289,6 +326,13 @@ class SettingsRow(QObject):
             self.le_peak2.setStyleSheet("background-color:rgb({},{},{})".format(255,0,0))
         else:
             self.le_peak2.setStyleSheet("")
+        
+    def validate_symbol_size(self)->None:
+        state, _, __ = self.le_symbol_size_validator.validate(self.le_symbol_size.text(), 0)
+        if state == QValidator.State.Intermediate:
+            self.le_symbol_size.setStyleSheet("background-color:rgb({},{},{})".format(255,0,0))
+        else:
+            self.le_symbol_size.setStyleSheet("")
         
     def get_widgets(self) -> list:
         list_widget = []
@@ -315,14 +359,14 @@ class SettingsRow(QObject):
         pen_color = self.measurement.pen_color
         self.button_pen.setStyleSheet("background-color:rgb({},{},{})".format(pen_color[0],pen_color[1],pen_color[2]))
         self.chb_pen_enable.setChecked(self.measurement.pen_enabled)
-        #todo self.cob_symbol
+        for (index, symbol) in enumerate(symbols):
+            if symbol == self.measurement.symbol:    
+                self.cob_symbol.setCurrentIndex(index)
         symbol_color = self.measurement.symbol_brush_color
         self.button_symbol_fill.setStyleSheet("background-color:rgb({},{},{})".format(symbol_color[0],symbol_color[1],symbol_color[2]))
         self.le_symbol_size.setText(str(self.measurement.symbol_size))
         self.chb_enable.setChecked(self.measurement.enabled)
 
-    def change_pen_colour(self):
-        pass
 
 # Create objects as rows->widget_event=update object's measurement-> get all new measuremnts and emit new measurments list
 
