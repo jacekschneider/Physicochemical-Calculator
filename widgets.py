@@ -4,12 +4,11 @@ import pyqtgraph as pg
 import pathlib
 import copy
 from multipledispatch import dispatch
-from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox, QComboBox, QColorDialog, QPushButton
+from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox, QComboBox, QColorDialog, QPushButton, QListView
 from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject, QSortFilterProxyModel
 from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator
 from PyQt6.uic.load_ui import loadUi
-from utils import Measurement, RMSE, symbols
-
+from utils import Measurement, RMSE, symbols, reSortProxyModel
 import pandas as pd
 from sklearn.linear_model import LinearRegression
         
@@ -29,6 +28,11 @@ class WidgetNavigation(QWidget):
         self.model.setNameFilters(["*.txt"])
         self.model.setNameFilterDisables(False)
 
+        
+        self.proxy_model = reSortProxyModel("\d+(?:\.\d+)?")
+        self.proxy_model.setSourceModel(self.model)
+
+        self.view_files.setSortingEnabled(True)
 
     def open_file_dialog(self):
         path_folder = QFileDialog.getExistingDirectory(
@@ -39,9 +43,13 @@ class WidgetNavigation(QWidget):
         if path_folder != "":
             self.emit_dirpath.emit(path_folder)
             self.le_path.setText(path_folder)
-            self.view_files.setModel(self.model)
+            self.view_files.setModel(self.proxy_model)
             root_index = self.model.index(QDir.cleanPath(path_folder))
-            self.view_files.setRootIndex(root_index)
+            proxy_index = self.proxy_model.mapFromSource(root_index)
+            self.view_files.setRootIndex(proxy_index)
+            self.view_files.hideColumn(1)
+            self.view_files.hideColumn(2)
+            self.view_files.hideColumn(3)
             
         else:
             #!JSCH
@@ -215,12 +223,14 @@ class WidgetData(QWidget):
     
     #!JSCH -> Accept txt only, otherwise do sth
     def dropEvent(self, e):
-        view = e.source()
+        view:QListView = e.source()
         self.clear()
         for (index, measurement) in enumerate(self.measurements):
             self.measurements[index].set_displayed(False)
         for item in view.selectedIndexes():
-            path = view.model().filePath(item)
+            source_index = view.model().mapToSource(item)
+            index_item = view.model().sourceModel().index(source_index.row(), 0, source_index.parent())
+            path = view.model().sourceModel().fileName(index_item)
             path_ending = path.split('.')[-1]
             filename = path.split('/')[-1]
             if path_ending == 'txt':

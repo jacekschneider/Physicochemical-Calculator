@@ -4,7 +4,7 @@ import pyqtgraph as pg
 import re
 import colorsys
 from multipledispatch import dispatch
-from PyQt6.QtCore import QCoreApplication, Qt, QModelIndex, QAbstractItemModel
+from PyQt6.QtCore import QCoreApplication, QSortFilterProxyModel
 from pathlib import Path
 from sklearn.linear_model import LinearRegression ## pip install numpy scikit-learn statsmodels
 from math import log10
@@ -291,3 +291,18 @@ if __name__ == '__main__': # for testing purposes
     model1,model2 = model_data.loc[RMSEval,['model1','model2']]
     example_plot(regdata, RMSEval, model1,model2)
     
+class reSortProxyModel(QSortFilterProxyModel):
+    
+    def __init__(self, expr:str="", *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.expr = expr
+        
+    def lessThan(self, left, right):
+        left_data = self.sourceModel().data(left)
+        right_data = self.sourceModel().data(right)
+        try:
+            left_value = float(re.findall('\d+(?:\.\d+)?', left_data.replace(',', '.'))[-1])
+            right_value = float(re.findall('\d+(?:\.\d+)?', right_data.replace(',', '.'))[-1])
+        except IndexError:
+            return False
+        return left_value < right_value
