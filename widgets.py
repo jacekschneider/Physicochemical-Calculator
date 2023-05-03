@@ -1,6 +1,7 @@
 import numpy as np
 import pyqtgraph as pg
 import pathlib
+import copy
 from multipledispatch import dispatch
 from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox, QComboBox, QColorDialog, QPushButton
 from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject
@@ -58,8 +59,8 @@ class WidgetCAC(QWidget):
         self.rmse_data = None
         
         self.graph.showGrid(x=True, y=True)
-        # self.legend = self.graph.addLegend(labelTextColor="w", labelTextSize="12")
-        # self.legend.anchor((0,0),(0.7,0.1))
+        self.legend = self.graph.addLegend(labelTextColor="w", labelTextSize="12")
+        self.legend.anchor((0,0),(0.7,0.1))
         self.styles = {'color':'white', 'font-size':'17px'}
         self.graph.setLabel('bottom', 'logC, mg/ml', **self.styles)
         self.graph.setLabel('left', 'I1/I3', **self.styles)
@@ -86,9 +87,11 @@ class WidgetCAC(QWidget):
         self.abline(self.rmse_data.cac_data["a1"], self.rmse_data.cac_data["b1"], start=-3.1, stop=cac_x+0.1, step=0.05)
         self.abline(self.rmse_data.cac_data["a2"], self.rmse_data.cac_data["b2"], start=cac_x-0.1, stop=1.2, step=0.05)
 
-        self.items_plot.append(self.graph.plot(cac_x, cac_y, pen=None, symbol='d', symbolPen=pg.mkPen("g"),symbolBrush=pg.mkBrush("g"),  symbolSize=9))
         pos_x = round(cac_x[0], 3)
         pos_y = round(cac_y[0], 3)
+        self.items_plot.append(self.graph.plot(cac_x, cac_y, pen=None, symbol='d',
+                                               symbolPen=pg.mkPen("g"),symbolBrush=pg.mkBrush("g"),  symbolSize=9, name="CAC = [{}, {}]".format(pos_x, pos_y)))
+
         item_text = pg.TextItem(text="CAC = [{}, {}]".format(pos_x, pos_y), color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
         item_text.setPos(cac_x[0], cac_y[0])
         self.items_text.append(item_text)
@@ -131,11 +134,11 @@ class WidgetData(QWidget):
         self.graph.setLabel('left', 'Intensity', **self.styles)
 
     def load(self, measurements:list):
-        self.measurements = measurements
-        self.draw()
+        self.measurements:list[Measurement] = measurements
+        self.draw()     
         
-    @dispatch(Measurement)                  
-    def draw(self, measurement:Measurement):
+    @dispatch(Measurement, bool)                  
+    def draw(self, measurement:Measurement, enable_peaks:bool=False):
         pen = pg.mkPen(measurement.pen_color) if measurement.pen_enabled else None
         item_plot = self.graph.plot(
             x=measurement.data.index.values,
@@ -148,13 +151,30 @@ class WidgetData(QWidget):
             name=measurement.name
         )
         self.items_plot.append(item_plot)
+        
+        if enable_peaks:
+            self.draw(measurement.peaks, measurement.symbol_size)
+        
+    @dispatch(dict, int)
+    def draw(self, peaks:dict, size:int):
+        peak1_x = peaks["Peak 1 ID"]
+        peak2_x = peaks["Peak 2 ID"]
+        peak1_y = peaks["Peak 1"]
+        peak2_y = peaks["Peak 2"]
+        self.items_plot.append(self.graph.plot(peak1_x, peak1_y, pen=None, symbol='star',
+                                               symbolPen=pg.mkPen("w"),symbolBrush=pg.mkBrush("w"),  symbolSize=size+2, name="I1 = {}".format(int(peak1_y))))
+        self.items_plot.append(self.graph.plot(peak2_x, peak2_y, pen=None, symbol='star',
+                                               symbolPen=pg.mkPen("w"),symbolBrush=pg.mkBrush("w"),  symbolSize=size+2, name="I3 = {}".format(int(peak2_y))))
     
     @dispatch()
     def draw(self):
         self.clear()
+        counter_displayed = 0
+        for measurement in self.measurements:
+            counter_displayed = counter_displayed + 1 if measurement.displayed else counter_displayed
         for (index, measurement) in enumerate(self.measurements):
-            if measurement.enabled:
-                self.draw(measurement)
+            if measurement.displayed:
+                self.draw(measurement, counter_displayed==1)
         
     def clear(self):
         for item in self.items_plot:
@@ -170,7 +190,7 @@ class WidgetData(QWidget):
         view = e.source()
         self.clear()
         for (index, measurement) in enumerate(self.measurements):
-            self.measurements[index].set_enabled(False)
+            self.measurements[index].set_displayed(False)
         for item in view.selectedIndexes():
             path = view.model().filePath(item)
             path_ending = path.split('.')[-1]
@@ -178,38 +198,64 @@ class WidgetData(QWidget):
             if path_ending == 'txt':
                 for (index, measurement) in enumerate(self.measurements):
                     if filename == measurement.filename:
-                        self.measurements[index].set_enabled(True)
+                        self.measurements[index].set_displayed(True)
                     
         self.draw()
         e.accept()
         
 
 class WidgetGraphCustomization(QWidget):
+    emit_measurements = Signal(list)
     
-    def __init__(self, measurements:list, *args, **kwargs):
+    def __init__(self, measurements_default:list, measurements:list, *args, **kwargs):
         super().__init__(*args, **kwargs)
         loadUi("UI/ui_settings_graph_data.ui", self)
         
+        self.measurements_default:list[Measurement] = measurements_default
         self.measurements_raw:list[Measurement] = measurements
-        self.measurements_new:list[Measurement] = []
+        self.settings_rows:list[SettingsRow] = []
         self.model = QStandardItemModel()
-        self.labels = ["title", "window width (1-10)", "peak1 (360-380)", "peak2 (370-390)", "pen", "pen_enable", "symbol", "symbol_fill_color", "symbol_size (3-12)", "enable"]
+        self.labels = ["title", "window width (1-10)", "peak1 (360-380)", "peak2 (370-390)", 
+                       "pen", "pen_enable", "symbol", "symbol_fill_color", "symbol_size (3-12)", "display", "enable"]
         self.model.setHorizontalHeaderLabels(self.labels)
-        
         self.tree.setModel(self.model)
         for (index, measurement) in enumerate(self.measurements_raw):
             self.create_row(index_row = index, measurement=measurement)
+            
+        self.pb_apply.clicked.connect(self.apply)
+        self.pb_cancel.clicked.connect(self.cancel)
+        self.pb_reset.clicked.connect(self.reset)
+        self.pb_restore_default.clicked.connect(self.restore_default)
         
     def create_row(self, index_row, measurement:Measurement):
         self.model.appendRow([QStandardItem() for i in self.labels])
         
         self.measurement = measurement
-        # Adding self as an argument was a crucial condition
+        # Passing self as an argument was a crucial condition for all the connections
         self.row = SettingsRow(self.measurement, self)
+        self.settings_rows.append(self.row)
         self.row_list = self.row.get_widgets()
         
         for (index_widget, widget) in enumerate(self.row_list):
             self.tree.setIndexWidget(self.model.index(index_row, index_widget), widget)
+            
+    def apply(self):
+        measurements_list=[]
+        for row in self.settings_rows:
+            measurements_list.append(row.get_measurement())
+        self.emit_measurements.emit(measurements_list)
+        self.close()
+        
+    def cancel(self):
+        self.close()
+        
+    def reset(self):
+        for (index, measurement) in enumerate(self.measurements_raw):
+            self.settings_rows[index].set_measurement(measurement)
+
+    def restore_default(self):
+        for (index, measurement) in enumerate(self.measurements_default):
+            self.settings_rows[index].set_measurement(measurement)
         
 
 class SettingsRow(QObject):
@@ -218,7 +264,7 @@ class SettingsRow(QObject):
         super().__init__(*args, **kwargs)
         
         # Prepare widgets according to the measurement data
-        self.measurement = measurement
+        self.measurement = copy.deepcopy(measurement)
         self.le_title = QLineEdit("titlex")
         self.le_title.setReadOnly(True)
         
@@ -245,7 +291,9 @@ class SettingsRow(QObject):
         self.le_symbol_size = QLineEdit("7")
         self.le_symbol_size_validator = QIntValidator(3, 12)
         self.le_symbol_size.setValidator(self.le_symbol_size_validator)
+        self.chb_display = QCheckBox()
         self.chb_enable = QCheckBox()
+        
         
         # Prepare connections
         self.le_title.editingFinished.connect(self.change_title)
@@ -261,8 +309,8 @@ class SettingsRow(QObject):
         self.button_symbol_fill.clicked.connect(self.change_symbol_colour)
         self.le_symbol_size.editingFinished.connect(self.change_symbol_size)
         self.le_symbol_size.textEdited.connect(self.validate_symbol_size)
+        self.chb_display.toggled.connect(self.change_display)
         self.chb_enable.toggled.connect(self.change_enable)
-        
         # Inject measurement data into widgets
         self.refresh()
 
@@ -284,7 +332,6 @@ class SettingsRow(QObject):
     
     def change_symbol(self)->None:
         self.measurement.set_symbol(self.cob_symbol.currentText())
-        print(self.measurement)
 
     def change_pen_colour(self):
         colour = QColorDialog.getColor()
@@ -299,8 +346,11 @@ class SettingsRow(QObject):
         self.button_symbol_fill.setStyleSheet("background-color:rgb({},{},{})".format(rgb[0],rgb[1],rgb[2]))
 
     def change_symbol_size(self):
-        self.measurement.set_symbol_size(self.le_symbol_size.text())
+        self.measurement.set_symbol_size(int(self.le_symbol_size.text()))
         
+    def change_display(self):
+        self.measurement.set_displayed(self.chb_display.isChecked())
+    
     def change_enable(self):
         self.measurement.set_enabled(self.chb_enable.isChecked())
         
@@ -343,11 +393,16 @@ class SettingsRow(QObject):
         list_widget.append(self.cob_symbol)
         list_widget.append(self.button_symbol_fill)
         list_widget.append(self.le_symbol_size)
+        list_widget.append(self.chb_display)
         list_widget.append(self.chb_enable)
         return list_widget
     
     def get_measurement(self) -> Measurement:
         return self.measurement
+    
+    def set_measurement(self, measurement:Measurement):
+        self.measurement = copy.deepcopy(measurement)
+        self.refresh()
     
     def refresh(self):
         self.le_title.setText(self.measurement.name)
@@ -363,6 +418,7 @@ class SettingsRow(QObject):
         symbol_color = self.measurement.symbol_brush_color
         self.button_symbol_fill.setStyleSheet("background-color:rgb({},{},{})".format(symbol_color[0],symbol_color[1],symbol_color[2]))
         self.le_symbol_size.setText(str(self.measurement.symbol_size))
+        self.chb_display.setChecked(self.measurement.displayed)
         self.chb_enable.setChecked(self.measurement.enabled)
 
 

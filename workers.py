@@ -1,8 +1,10 @@
 import numpy as np
 import pandas as pd
 import os
+import copy
 from math import log10
 from pathlib import Path
+from multipledispatch import dispatch
 from utils import Measurement, RMSE
 from PyQt6.QtWidgets import QFileDialog
 from PyQt6.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QObject
@@ -123,21 +125,32 @@ class ReportWorker(QObject):
 
 class SettingsWorker(QObject):
     emit_measurements = Signal(list)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.measurements_raw:list[Measurement] = []
+        self.measurements_edited:list[Measurement] = []
     
-    def load(self, dirpath):
-        self.measurements:list[Measurement] = []
+    @dispatch(str)
+    def load(self, dirpath:str):
+        self.measurements_raw.clear()
         files:list[str] = [str(file)for file in list(Path(dirpath).glob('*.txt'))]
         for file in files:
             measurement = Measurement(path=file, encoding="utf-16", separator="\t")
-            self.measurements.append(measurement)
-        self.emit_measurements.emit(self.measurements)
+            self.measurements_raw.append(measurement)
+            self.measurements_edited = copy.deepcopy(self.measurements_raw)
+        self.emit_measurements.emit(self.measurements_edited)
         
+    @dispatch(list)
+    def load(self, measurements:list):
+        self.measurements_edited = measurements
+        self.emit_measurements.emit(self.measurements_edited)
+        
+    def get_measurements_raw(self)->list:
+        return self.measurements_raw
+
     def get_measurements(self)->list:
-        try:
-            return self.measurements
-        except AttributeError:
-            return []
- 
+        return self.measurements_edited
+
             
 class CalculatorWorker(QObject):
     emit_RMSE = Signal(RMSE)
@@ -156,8 +169,8 @@ class CalculatorWorker(QObject):
         self.emit_RMSE.emit(rmse_data)
 
     def __prepare_regression_data(self)->pd.DataFrame:
-        concentrations: list[float] = [log10(measurement.concentration) for measurement in self.measurements]
-        relatives:list[float] = [float(measurement.peaks["Peak 1"]/measurement.peaks["Peak 2"]) for measurement in self.measurements]
+        concentrations: list[float] = [log10(measurement.concentration) for measurement in self.measurements if measurement.enabled]
+        relatives:list[float] = [float(measurement.peaks["Peak 1"]/measurement.peaks["Peak 2"]) for measurement in self.measurements if measurement.enabled]
         regression_data = pd.DataFrame({'Y': relatives,'X': concentrations})
         regression_data.sort_values('X', inplace=True)
         return regression_data.T

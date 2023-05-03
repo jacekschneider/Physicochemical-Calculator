@@ -180,8 +180,8 @@ class Measurement():
     symbol_brush_color : list = field(default_factory=lambda:[0, 0, 0], init=False)
     symbol_size : int = field(default=7, init=False)
     name : str = field(default="NoName", init=False,)
+    displayed : bool = field(default=False, init=False)
     enabled : bool = field(default=False, init=False)
-    faulted : bool = field(default=False, init=False)
     
     def __post_init__(self):
         self.load_data()
@@ -190,6 +190,7 @@ class Measurement():
         (r, g, b) = colorsys.hsv_to_rgb(np.random.random(), 1, 1)
         self.set_pen_color([r*255, g*255, b*255])
         self.set_enabled(True)
+        self.set_displayed(True)
     
     def load_data(self):
 
@@ -258,14 +259,20 @@ class Measurement():
     def set_enabled(self, state:bool):
         object.__setattr__(self, 'enabled', state)
     
+    def set_displayed(self, state:bool):
+        object.__setattr__(self, 'displayed', state)
+    
     def set_window_width(self, width:int):
         object.__setattr__(self, 'window_width', width)
+        self.load_peaks()
     
     def set_peak1(self, peak:int):
         object.__setattr__(self, "peak1_raw", peak)
+        self.load_peaks()
         
     def set_peak2(self, peak:int):
         object.__setattr__(self, "peak2_raw", peak)
+        self.load_peaks()
 
 @dataclass(frozen=True)
 class RMSE():
