@@ -1,10 +1,11 @@
+from PyQt6 import QtGui
 import numpy as np
 import pyqtgraph as pg
 import pathlib
 import copy
 from multipledispatch import dispatch
 from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox, QComboBox, QColorDialog, QPushButton
-from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject
+from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject, QSortFilterProxyModel
 from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator
 from PyQt6.uic.load_ui import loadUi
 from utils import Measurement, RMSE, symbols
@@ -27,7 +28,8 @@ class WidgetNavigation(QWidget):
         self.model.setRootPath("") 
         self.model.setNameFilters(["*.txt"])
         self.model.setNameFilterDisables(False)
-        
+
+
     def open_file_dialog(self):
         path_folder = QFileDialog.getExistingDirectory(
             self,
@@ -40,6 +42,7 @@ class WidgetNavigation(QWidget):
             self.view_files.setModel(self.model)
             root_index = self.model.index(QDir.cleanPath(path_folder))
             self.view_files.setRootIndex(root_index)
+            
         else:
             #!JSCH
             pass
@@ -57,6 +60,7 @@ class WidgetCAC(QWidget):
         self.items_plot = []
         self.items_text = []
         self.rmse_data = None
+        self.hide_text = True
         
         self.graph.showGrid(x=True, y=True)
         self.legend = self.graph.addLegend(labelTextColor="w", labelTextSize="12")
@@ -95,7 +99,7 @@ class WidgetCAC(QWidget):
         item_text = pg.TextItem(text="CAC = [{}, {}]".format(pos_x, pos_y), color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
         item_text.setPos(cac_x[0], cac_y[0])
         self.items_text.append(item_text)
-        self.graph.addItem(item_text)
+        
         
         
         
@@ -115,6 +119,16 @@ class WidgetCAC(QWidget):
             self.items_plot.pop()
         while len(self.items_text):
             self.items_text.pop()
+            
+    def mouseDoubleClickEvent(self, event) -> None:
+        if len(self.items_text) > 0 and self.rmse_data is not None and self.hide_text:
+            for text in self.items_text:
+                self.graph.addItem(text)
+            self.hide_text = False
+        else:
+            for text in self.items_text:
+                self.graph.removeItem(text)
+            self.hide_text = True
         
         
 class WidgetData(QWidget):
@@ -132,9 +146,14 @@ class WidgetData(QWidget):
         self.styles = {'color':'white', 'font-size':'17px'}
         self.graph.setLabel('bottom', 'Wavelength, nm', **self.styles)
         self.graph.setLabel('left', 'Intensity', **self.styles)
+        
+        self.cb_measurements.activated.connect(self.display)
 
     def load(self, measurements:list):
         self.measurements:list[Measurement] = measurements
+        self.cb_measurements.clear()
+        self.cb_measurements.addItem('*')
+        self.cb_measurements.addItems([measurement.name.split('= ')[-1] for measurement in self.measurements])
         self.draw()     
         
     @dispatch(Measurement, bool)                  
@@ -154,13 +173,20 @@ class WidgetData(QWidget):
         
         if enable_peaks:
             self.draw(measurement.peaks, measurement.symbol_size)
+            for i in range(self.cb_measurements.count()):
+                if self.cb_measurements.itemText(i) in measurement.name:
+                    self.cb_measurements.setCurrentIndex(i)
+        else:
+            self.cb_measurements.setCurrentIndex(0)
         
     @dispatch(dict, int)
     def draw(self, peaks:dict, size:int):
         peak1_x = peaks["Peak 1 ID"]
         peak2_x = peaks["Peak 2 ID"]
-        peak1_y = peaks["Peak 1"]
-        peak2_y = peaks["Peak 2"]
+        peak1_y = round(peaks["Peak 1"], 3)
+        peak2_y = round(peaks["Peak 2"], 3)
+        self.le_I1.setText(str(float(peak1_y)))
+        self.le_I3.setText(str(float(peak2_y)))
         self.items_plot.append(self.graph.plot(peak1_x, peak1_y, pen=None, symbol='star',
                                                symbolPen=pg.mkPen("w"),symbolBrush=pg.mkBrush("w"),  symbolSize=size+2, name="I1 = {}".format(int(peak1_y))))
         self.items_plot.append(self.graph.plot(peak2_x, peak2_y, pen=None, symbol='star',
@@ -169,6 +195,8 @@ class WidgetData(QWidget):
     @dispatch()
     def draw(self):
         self.clear()
+        self.le_I1.setText("*")
+        self.le_I3.setText("*")
         counter_displayed = 0
         for measurement in self.measurements:
             counter_displayed = counter_displayed + 1 if measurement.displayed else counter_displayed
@@ -203,6 +231,11 @@ class WidgetData(QWidget):
         self.draw()
         e.accept()
         
+    def display(self):
+        concentration = self.cb_measurements.currentText()
+        for measurement in self.measurements:
+            measurement.set_displayed(concentration in measurement.name.replace(',','.') or concentration == '*') 
+        self.draw()
 
 class WidgetGraphCustomization(QWidget):
     emit_measurements = Signal(list)
@@ -215,7 +248,7 @@ class WidgetGraphCustomization(QWidget):
         self.measurements_raw:list[Measurement] = measurements
         self.settings_rows:list[SettingsRow] = []
         self.model = QStandardItemModel()
-        self.labels = ["title", "window width (1-10)", "peak1 (360-380)", "peak2 (370-390)", 
+        self.labels = ["concentration", "window width (1-10)", "peak1 (360-380)", "peak2 (370-390)", 
                        "pen", "pen_enable", "symbol", "symbol_fill_color", "symbol_size (3-12)", "display", "enable"]
         self.model.setHorizontalHeaderLabels(self.labels)
         self.tree.setModel(self.model)
@@ -421,8 +454,6 @@ class SettingsRow(QObject):
         self.chb_display.setChecked(self.measurement.displayed)
         self.chb_enable.setChecked(self.measurement.enabled)
 
-
-# Create objects as rows->widget_event=update object's measurement-> get all new measuremnts and emit new measurments list
 
         
         

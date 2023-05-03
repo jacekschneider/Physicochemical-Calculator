@@ -4,11 +4,12 @@ import pyqtgraph as pg
 import re
 import colorsys
 from multipledispatch import dispatch
-from PyQt6.QtCore import QCoreApplication
+from PyQt6.QtCore import QCoreApplication, Qt, QModelIndex, QAbstractItemModel
 from pathlib import Path
 from sklearn.linear_model import LinearRegression ## pip install numpy scikit-learn statsmodels
 from math import log10
 from dataclasses import dataclass, field
+from PyQt6.QtGui import  QFileSystemModel
 
 symbols = ["o", "t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d", "x"]
 
