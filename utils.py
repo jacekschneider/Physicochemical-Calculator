@@ -2,12 +2,16 @@ import numpy as np
 import pandas as pd
 import pyqtgraph as pg
 import re
+import colorsys
 from multipledispatch import dispatch
-from PyQt6.QtCore import QCoreApplication
+from PyQt6.QtCore import QCoreApplication, QSortFilterProxyModel
 from pathlib import Path
 from sklearn.linear_model import LinearRegression ## pip install numpy scikit-learn statsmodels
 from math import log10
 from dataclasses import dataclass, field
+from PyQt6.QtGui import  QFileSystemModel
+
+symbols = ["o", "t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d", "x"]
 
 def closest_value(input_list, input_value):
     arr = np.asarray(input_list)
@@ -151,11 +155,21 @@ def example_plot(regdata: pd.DataFrame, model_frame_id: int, model1: LinearRegre
     ## The plot is not scaled properly
     plt.show()
 
-colors = "rgbwymc"
-pens = []
-for color in colors:
-    pens.append(pg.mkPen(color))
-    
+def color_gen()->list:
+    colors = colorsys.hsv_to_rgb(np.random.random(), 1, 1)
+    return [x*255 for x in colors]
+
+# index starts with 0
+def gray_color_gen(index:int, size:int)->list:
+    minimum = 50
+    maximum = 255
+    delta = round((maximum-minimum)/size)
+    value_gray = delta*(index+1)+minimum
+    if index+1 >= size:
+        return [maximum for i in range(3)]
+    else:
+        return [value_gray for i in range(3)]
+
 @dataclass(frozen=True)
 class Measurement():
     
@@ -171,20 +185,22 @@ class Measurement():
     window_width : int = 3
     peaks:dict = field(init=False)
     
-    pen_color = "w"
+    pen_color : list = field(default_factory=lambda:[0, 0, 0], init=False)
     pen_enabled : bool = field(default=False, init=False)
     symbol : str = field(default="o", init=False)
     symbol_brush_color : list = field(default_factory=lambda:[0, 0, 0], init=False)
     symbol_size : int = field(default=7, init=False)
     name : str = field(default="NoName", init=False,)
+    displayed : bool = field(default=False, init=False)
     enabled : bool = field(default=False, init=False)
-    faulted : bool = field(default=False, init=False)
     
     def __post_init__(self):
         self.load_data()
         self.load_peaks()
         self.set_name("Concentration = {}".format(self.concentration))
+        self.set_pen_color(color_gen())
         self.set_enabled(True)
+        self.set_displayed(True)
     
     def load_data(self):
 
@@ -237,7 +253,7 @@ class Measurement():
         object.__setattr__(self, 'pen_enabled', state)
         
     def set_symbol(self, symbol:str):
-        #JSCH!
+        #JSCH! -> validate symbol
         object.__setattr__(self, 'symbol', symbol)
     
     def set_symbol_brush_color(self, color:list):
@@ -245,7 +261,6 @@ class Measurement():
             object.__setattr__(self, 'symbol_brush_color', color)
     
     def set_symbol_size(self, size:int):
-        self.symbol_size = size
         object.__setattr__(self, 'symbol_size', size)
     
     def set_name(self, name:str):
@@ -253,6 +268,21 @@ class Measurement():
         
     def set_enabled(self, state:bool):
         object.__setattr__(self, 'enabled', state)
+    
+    def set_displayed(self, state:bool):
+        object.__setattr__(self, 'displayed', state)
+    
+    def set_window_width(self, width:int):
+        object.__setattr__(self, 'window_width', width)
+        self.load_peaks()
+    
+    def set_peak1(self, peak:int):
+        object.__setattr__(self, "peak1_raw", peak)
+        self.load_peaks()
+        
+    def set_peak2(self, peak:int):
+        object.__setattr__(self, "peak2_raw", peak)
+        self.load_peaks()
 
 @dataclass(frozen=True)
 class RMSE():
@@ -269,3 +299,19 @@ if __name__ == '__main__': # for testing purposes
     R2val, RMSEval = choose_models_frame_id(model_data)
     model1,model2 = model_data.loc[RMSEval,['model1','model2']]
     example_plot(regdata, RMSEval, model1,model2)
+    
+class reSortProxyModel(QSortFilterProxyModel):
+    
+    def __init__(self, expr:str="", *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.expr = expr
+        
+    def lessThan(self, left, right):
+        left_data = self.sourceModel().data(left)
+        right_data = self.sourceModel().data(right)
+        try:
+            left_value = float(re.findall('\d+(?:\.\d+)?', left_data.replace(',', '.'))[-1])
+            right_value = float(re.findall('\d+(?:\.\d+)?', right_data.replace(',', '.'))[-1])
+        except IndexError:
+            return False
+        return left_value < right_value
