@@ -309,8 +309,8 @@ class WidgetGraphCustomization(QWidget):
             if stylesheet == "Grayscale":
                 color = gray_color_gen(index, len(self.settings_rows))
             try:
-                row.change_pen_colour(color)
-                row.change_symbol_colour(color) if fill_symbol else None
+                row.change_pen_colour_ex(color)
+                row.change_symbol_colour_ex(color) if fill_symbol else None
             except:
                 return
         
@@ -390,7 +390,7 @@ class SettingsRow(QObject):
     def change_symbol(self)->None:
         self.measurement.set_symbol(self.cob_symbol.currentText())
 
-    @dispatch()
+
     def change_pen_colour(self):
         colour = QColorDialog.getColor()
         rgb = [colour.red(), colour.green(), colour.blue()]
@@ -398,11 +398,10 @@ class SettingsRow(QObject):
         self.button_pen.setStyleSheet("background-color:rgb({},{},{})".format(rgb[0],rgb[1],rgb[2]))
     
     @dispatch(list)
-    def change_pen_colour(self, rgb:list):
+    def change_pen_colour_ex(self, rgb:list):
         self.measurement.set_pen_color(rgb)
         self.button_pen.setStyleSheet("background-color:rgb({},{},{})".format(rgb[0],rgb[1],rgb[2]))
     
-    @dispatch()
     def change_symbol_colour(self):
         colour = QColorDialog.getColor()
         rgb = [colour.red(), colour.green(), colour.blue()]
@@ -410,7 +409,7 @@ class SettingsRow(QObject):
         self.button_symbol_fill.setStyleSheet("background-color:rgb({},{},{})".format(rgb[0],rgb[1],rgb[2]))
         
     @dispatch(list)
-    def change_symbol_colour(self, rgb:list):
+    def change_symbol_colour_ex(self, rgb:list):
         self.measurement.set_symbol_brush_color(rgb)
         self.button_symbol_fill.setStyleSheet("background-color:rgb({},{},{})".format(rgb[0],rgb[1],rgb[2]))
 
