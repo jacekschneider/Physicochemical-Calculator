@@ -155,11 +155,21 @@ def example_plot(regdata: pd.DataFrame, model_frame_id: int, model1: LinearRegre
     ## The plot is not scaled properly
     plt.show()
 
-colors = "rgbwymc"
-pens = []
-for color in colors:
-    pens.append(pg.mkPen(color))
-    
+def color_gen()->list:
+    colors = colorsys.hsv_to_rgb(np.random.random(), 1, 1)
+    return [x*255 for x in colors]
+
+# index starts with 0
+def gray_color_gen(index:int, size:int)->list:
+    minimum = 50
+    maximum = 255
+    delta = round((maximum-minimum)/size)
+    value_gray = delta*(index+1)+minimum
+    if index+1 >= size:
+        return [maximum for i in range(3)]
+    else:
+        return [value_gray for i in range(3)]
+
 @dataclass(frozen=True)
 class Measurement():
     
@@ -188,8 +198,7 @@ class Measurement():
         self.load_data()
         self.load_peaks()
         self.set_name("Concentration = {}".format(self.concentration))
-        (r, g, b) = colorsys.hsv_to_rgb(np.random.random(), 1, 1)
-        self.set_pen_color([r*255, g*255, b*255])
+        self.set_pen_color(color_gen())
         self.set_enabled(True)
         self.set_displayed(True)
     

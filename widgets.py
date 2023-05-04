@@ -8,9 +8,8 @@ from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, 
 from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject, QSortFilterProxyModel
 from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator
 from PyQt6.uic.load_ui import loadUi
-from utils import Measurement, RMSE, symbols, reSortProxyModel
-import pandas as pd
-from sklearn.linear_model import LinearRegression
+from utils import Measurement, RMSE, symbols, reSortProxyModel, color_gen, gray_color_gen
+
         
           
 class WidgetNavigation(QWidget):
@@ -259,7 +258,7 @@ class WidgetGraphCustomization(QWidget):
         self.settings_rows:list[SettingsRow] = []
         self.model = QStandardItemModel()
         self.labels = ["concentration", "window width (1-10)", "peak1 (360-380)", "peak2 (370-390)", 
-                       "pen", "pen_enable", "symbol", "symbol_fill_color", "symbol_size (3-12)", "display", "enable"]
+                       "pen color", "pen enable", "symbol", "symbol color", "symbol size (3-12)", "display", "enable"]
         self.model.setHorizontalHeaderLabels(self.labels)
         self.tree.setModel(self.model)
         for (index, measurement) in enumerate(self.measurements_raw):
@@ -269,6 +268,7 @@ class WidgetGraphCustomization(QWidget):
         self.pb_cancel.clicked.connect(self.cancel)
         self.pb_reset.clicked.connect(self.reset)
         self.pb_restore_default.clicked.connect(self.restore_default)
+        self.cb_stylesheet.activated.connect(self.change_stylesheet)
         
     def create_row(self, index_row, measurement:Measurement):
         self.model.appendRow([QStandardItem() for i in self.labels])
@@ -299,6 +299,20 @@ class WidgetGraphCustomization(QWidget):
     def restore_default(self):
         for (index, measurement) in enumerate(self.measurements_default):
             self.settings_rows[index].set_measurement(measurement)
+            
+    def change_stylesheet(self):
+        stylesheet = self.cb_stylesheet.currentText()
+        fill_symbol = self.chb_fillsymbol.isChecked()
+        for (index,  row) in enumerate(self.settings_rows):
+            if stylesheet == "Random":
+                color = color_gen()
+            if stylesheet == "Grayscale":
+                color = gray_color_gen(index, len(self.settings_rows))
+            try:
+                row.change_pen_colour(color)
+                row.change_symbol_colour(color) if fill_symbol else None
+            except:
+                return
         
 
 class SettingsRow(QObject):
@@ -376,15 +390,27 @@ class SettingsRow(QObject):
     def change_symbol(self)->None:
         self.measurement.set_symbol(self.cob_symbol.currentText())
 
+    @dispatch()
     def change_pen_colour(self):
         colour = QColorDialog.getColor()
         rgb = [colour.red(), colour.green(), colour.blue()]
         self.measurement.set_pen_color(rgb)
         self.button_pen.setStyleSheet("background-color:rgb({},{},{})".format(rgb[0],rgb[1],rgb[2]))
-        
+    
+    @dispatch(list)
+    def change_pen_colour(self, rgb:list):
+        self.measurement.set_pen_color(rgb)
+        self.button_pen.setStyleSheet("background-color:rgb({},{},{})".format(rgb[0],rgb[1],rgb[2]))
+    
+    @dispatch()
     def change_symbol_colour(self):
         colour = QColorDialog.getColor()
         rgb = [colour.red(), colour.green(), colour.blue()]
+        self.measurement.set_symbol_brush_color(rgb)
+        self.button_symbol_fill.setStyleSheet("background-color:rgb({},{},{})".format(rgb[0],rgb[1],rgb[2]))
+        
+    @dispatch(list)
+    def change_symbol_colour(self, rgb:list):
         self.measurement.set_symbol_brush_color(rgb)
         self.button_symbol_fill.setStyleSheet("background-color:rgb({},{},{})".format(rgb[0],rgb[1],rgb[2]))
 
