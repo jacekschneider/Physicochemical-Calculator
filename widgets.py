@@ -9,7 +9,7 @@ from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject, QSortFilterProxyMo
 from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator
 from PyQt6.uic.load_ui import loadUi
 from utils import Measurement, RMSE, symbols, reSortProxyModel, color_gen, gray_color_gen
-
+from pyqtgraph.exporters import ImageExporter
         
           
 class WidgetNavigation(QWidget):
@@ -60,6 +60,7 @@ class WidgetNavigation(QWidget):
   
         
 class WidgetCAC(QWidget):
+    emit_plot = Signal(ImageExporter)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         loadUi("UI/ui_cac.ui", self)
@@ -103,11 +104,12 @@ class WidgetCAC(QWidget):
         self.items_plot.append(self.graph.plot(cac_x, cac_y, pen=None, symbol='d',
                                                symbolPen=pg.mkPen("g"),symbolBrush=pg.mkBrush("g"),  symbolSize=9, name="CMC = [{}, {}]".format(pos_x, pos_y)))
 
-        item_text = pg.TextItem(text="CMC = [{}, {}]".format(pos_x, pos_y), color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
+        # item_text = pg.TextItem(text="CMC = [{}, {}]".format(pos_x, pos_y), color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
+        item_text = pg.TextItem(text=f"CMC = {10**pos_x}", color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
         item_text.setPos(cac_x[0], cac_y[0])
         self.items_text.append(item_text)
-        
-        
+        imx = ImageExporter(self.graph.scene())
+        self.emit_plot.emit(imx)
         
         
     def abline(self, a, b, start, stop, step):
@@ -139,6 +141,7 @@ class WidgetCAC(QWidget):
         
         
 class WidgetData(QWidget):
+    emit_plot = Signal(ImageExporter)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         loadUi("UI/ui_data.ui", self)

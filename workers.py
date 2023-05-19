@@ -13,7 +13,7 @@ from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from sklearn.linear_model import LinearRegression
 from tempfile import NamedTemporaryFile
-import pyqtgraph.exporters
+from pyqtgraph.exporters import ImageExporter
 
 class ReportWorker(QObject):
     
@@ -94,18 +94,14 @@ class ReportWorker(QObject):
 
             # draw_plot("CAC plot", self.CAC_plot) # example usecase
 
-            divider("CAC plot")
-            canvas.drawImage("sampleplot.png", 50, page_height - plot_height + self.offset, width=plot_width, height=plot_height) 
-            self.offset -= plot_height
+            # draw_plot("CAC plot", self.dataview_plot)
 
             paragraph("Sample text",
                     f"CAC: {0.088}",
                     f"Mimimum concentration in the experiment: {self.min_concentration}",
                     f"Maximum concentration in the experiment: {self.max_concentration}")
             
-            divider("CAC plot")
-            canvas.drawImage("sampleplot.png", 50, page_height - plot_height + self.offset, width=plot_width, height=plot_height) 
-            self.offset -= plot_height
+            draw_plot("CAC plot", self.CAC_plot)
             
             # canvas.setTitle("CAC analysis")
 
