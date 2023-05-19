@@ -101,9 +101,9 @@ class WidgetCAC(QWidget):
         pos_x = round(cac_x[0], 3)
         pos_y = round(cac_y[0], 3)
         self.items_plot.append(self.graph.plot(cac_x, cac_y, pen=None, symbol='d',
-                                               symbolPen=pg.mkPen("g"),symbolBrush=pg.mkBrush("g"),  symbolSize=9, name="CAC = [{}, {}]".format(pos_x, pos_y)))
+                                               symbolPen=pg.mkPen("g"),symbolBrush=pg.mkBrush("g"),  symbolSize=9, name="CMC = [{}, {}]".format(pos_x, pos_y)))
 
-        item_text = pg.TextItem(text="CAC = [{}, {}]".format(pos_x, pos_y), color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
+        item_text = pg.TextItem(text="CMC = [{}, {}]".format(pos_x, pos_y), color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
         item_text.setPos(cac_x[0], cac_y[0])
         self.items_text.append(item_text)
         

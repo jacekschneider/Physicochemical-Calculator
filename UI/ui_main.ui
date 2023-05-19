@@ -34,7 +34,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="WidgetData" name="widget_data">
        <property name="acceptDrops">
@@ -49,7 +49,7 @@
         <bool>true</bool>
        </property>
        <attribute name="title">
-        <string>CAC</string>
+        <string>CMC</string>
        </attribute>
       </widget>
      </widget>
