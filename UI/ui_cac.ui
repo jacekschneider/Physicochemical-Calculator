@@ -126,12 +126,12 @@
              </size>
             </property>
             <property name="text">
-             <string>Breaking Point Number</string>
+             <string>CMC mg/ml</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_3">
+           <widget class="QLineEdit" name="le_CMC">
             <property name="minimumSize">
              <size>
               <width>120</width>

@@ -96,8 +96,8 @@ class WidgetCAC(QWidget):
         self.items_plot.append(self.graph.plot(x1, y1, pen=None, symbol='o', symbolPen=pg.mkPen("b"),symbolBrush=pg.mkBrush("b"),  symbolSize=7))
         self.items_plot.append(self.graph.plot(x2, y2, pen=None, symbol='o', symbolPen=pg.mkPen("r"),symbolBrush=pg.mkBrush("r"),  symbolSize=7))
         #JSCH! -> abline range upgrade
-        self.abline(self.rmse_data.cac_data["a1"], self.rmse_data.cac_data["b1"], start=-3.1, stop=cac_x+0.1, step=0.05)
-        self.abline(self.rmse_data.cac_data["a2"], self.rmse_data.cac_data["b2"], start=cac_x-0.1, stop=1.2, step=0.05)
+        self.abline(self.rmse_data.cac_data["a1"], self.rmse_data.cac_data["b1"], start=-3.1, stop=cac_x+0.1, step=0.01)
+        self.abline(self.rmse_data.cac_data["a2"], self.rmse_data.cac_data["b2"], start=cac_x-0.1, stop=1.2, step=0.01)
 
         pos_x = round(cac_x[0], 3)
         pos_y = round(cac_y[0], 3)
@@ -105,9 +105,11 @@ class WidgetCAC(QWidget):
                                                symbolPen=pg.mkPen("g"),symbolBrush=pg.mkBrush("g"),  symbolSize=9, name="CMC = [{}, {}]".format(pos_x, pos_y)))
 
         # item_text = pg.TextItem(text="CMC = [{}, {}]".format(pos_x, pos_y), color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
-        item_text = pg.TextItem(text=f"CMC = {10**pos_x}", color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
+        item_text = pg.TextItem(text=f"CMC = {np.round(10**pos_x, 6)} mg/ml", color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
         item_text.setPos(cac_x[0], cac_y[0])
         self.items_text.append(item_text)
+        self.le_CMC.setText(f"{np.round(10**pos_x, 6)}")
+        
         imx = ImageExporter(self.graph.scene())
         self.emit_plot.emit(imx)
         
