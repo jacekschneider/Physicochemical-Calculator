@@ -158,6 +158,7 @@ class WidgetData(QWidget):
         self.styles = {'color':'white', 'font-size':'17px'}
         self.graph.setLabel('bottom', 'Wavelength, nm', **self.styles)
         self.graph.setLabel('left', 'Intensity', **self.styles)
+        self.graph.setTitle("Polymer Data", **self.styles)
         
         self.cb_measurements.activated.connect(self.display)
 
@@ -267,8 +268,7 @@ class SettingsRow(QObject):
         
         self.le_peak1 = QLineEdit("373")
         self.le_peak1_validator = QIntValidator(360, 380)
-        self.le_peak1.setValidator(self.le_peak1_validator)
-        
+        self.le_peak1.setValidator(self.le_peak1_validator)      
         self.le_peak2 = QLineEdit("384")
         self.le_peak2_validator = QIntValidator(370, 390)
         self.le_peak2.setValidator(self.le_peak2_validator)
@@ -430,6 +430,8 @@ class SettingsRow(QObject):
     def get_widgets(self) -> list:
         list_widget = []
         list_widget.append(self.le_title)
+        list_widget.append(self.chb_enable)
+        list_widget.append(self.chb_display)
         list_widget.append(self.le_window_width)
         list_widget.append(self.le_peak1)
         list_widget.append(self.le_peak2)
@@ -438,8 +440,7 @@ class SettingsRow(QObject):
         list_widget.append(self.cob_symbol)
         list_widget.append(self.button_symbol_fill)
         list_widget.append(self.le_symbol_size)
-        list_widget.append(self.chb_display)
-        list_widget.append(self.chb_enable)
+
         return list_widget
     
     def get_measurement(self) -> Measurement:
@@ -456,7 +457,7 @@ class SettingsRow(QObject):
         self.refresh()
     
     def refresh(self):
-        self.le_title.setText(self.measurement.name)
+        self.le_title.setText(self.measurement.name.split(' ')[-1])
         self.le_window_width.setText(str(self.measurement.window_width))
         self.le_peak1.setText(str(self.measurement.peak1_raw))
         self.le_peak2.setText(str(self.measurement.peak2_raw))
@@ -483,12 +484,13 @@ class WidgetGraphCustomization(QWidget):
         self.measurements_raw:list[Measurement] = measurements
         self.settings_rows:list[SettingsRow] = []
         self.model = QStandardItemModel()
-        self.labels = ["concentration", "window width (1-10)", "peak1 (360-380)", "peak2 (370-390)", 
-                       "pen color", "pen enable", "symbol", "symbol color", "symbol size (3-12)", "display", "enable"]
+        self.labels = ["concentration","enable", "display", "window width (1-10)", "peak1 (360-380)", "peak2 (370-390)", 
+                       "pen color", "pen enable", "symbol", "symbol color", "symbol size (3-12)" ]
         self.model.setHorizontalHeaderLabels(self.labels)
         self.tree.setModel(self.model)
         for (index, measurement) in enumerate(self.measurements_raw):
-            self.create_row(index_row = index, measurement=measurement)
+            self.create_row(index_row = index, measurement=measurement)  
+            self.tree.resizeColumnToContents(index)
             
         self.pb_apply.clicked.connect(self.apply)
         self.pb_cancel.clicked.connect(self.cancel)
@@ -541,7 +543,9 @@ class WidgetGraphCustomization(QWidget):
                 elif option == "display":
                     row.change_display_ex(value)
                 elif option == "enable":
-                    row.change_enable_ex(value)
+                    # enable not available for column
+                    # row.change_enable_ex(value)
+                    pass
             
         
             

@@ -171,6 +171,14 @@ class CalculatorWorker(QObject):
     def __prepare_regression_data(self)->pd.DataFrame:
         concentrations: list[float] = [log10(measurement.concentration) for measurement in self.measurements if measurement.enabled]
         relatives:list[float] = [float(measurement.peaks["Peak 1"]/measurement.peaks["Peak 2"]) for measurement in self.measurements if measurement.enabled]
+        
+        # DELETE !JSCH
+        # d = {"concentration(log)" : concentrations, "I1/I3" : relatives}
+        # temp = pd.DataFrame(data=d)
+        # temp.set_index("concentration(log)", inplace=True)
+        # temp.to_csv("x.csv")
+        # DELETE ^
+        
         regression_data = pd.DataFrame({'Y': relatives,'X': concentrations})
         regression_data.sort_values('X', inplace=True)
         return regression_data.T
