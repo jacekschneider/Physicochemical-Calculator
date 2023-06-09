@@ -1,7 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6.uic.load_ui import loadUi
-from workers import ReportWorker, SettingsWorker, CalculatorWorker
+from workers import ReportWorker, SettingsWorker, CalculatorWorker, ExportWorker
 from widgets import WidgetGraphCustomization
 
 class MainWindow(QMainWindow):
@@ -13,6 +13,7 @@ class MainWindow(QMainWindow):
         self.report_worker = ReportWorker()
         self.settings_worker = SettingsWorker()
         self.calculator_worker = CalculatorWorker()
+        self.export_worker = ExportWorker()
 
         
         #Connections
@@ -26,6 +27,8 @@ class MainWindow(QMainWindow):
         self.widget_navigation.pb_clear_data.clicked.connect(self.widget_data.clear)
         self.action_generate.triggered.connect(self.report_worker.generate)
         self.action_graph_customization.triggered.connect(self.show_customization)
+        self.calculator_worker.emit_I1I3.connect(self.export_worker.get_I1I3)
+        self.widget_cac.pb_export.clicked.connect(self.export_worker.export_I1I3)
 
         self.show()
         

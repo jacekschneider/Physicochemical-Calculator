@@ -1,3 +1,4 @@
+import typing
 import numpy as np
 import pandas as pd
 import os
@@ -153,6 +154,7 @@ class SettingsWorker(QObject):
 
             
 class CalculatorWorker(QObject):
+    emit_I1I3 = Signal(pd.DataFrame)
     emit_RMSE = Signal(RMSE)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -172,12 +174,13 @@ class CalculatorWorker(QObject):
         concentrations: list[float] = [log10(measurement.concentration) for measurement in self.measurements if measurement.enabled]
         relatives:list[float] = [float(measurement.peaks["Peak 1"]/measurement.peaks["Peak 2"]) for measurement in self.measurements if measurement.enabled]
         
-        # DELETE !JSCH
-        # d = {"concentration(log)" : concentrations, "I1/I3" : relatives}
-        # temp = pd.DataFrame(data=d)
-        # temp.set_index("concentration(log)", inplace=True)
-        # temp.to_csv("x.csv")
-        # DELETE ^
+        d = {"concentration(log)" : concentrations, "I1/I3" : relatives}
+        I1I3 = pd.DataFrame(data=d)
+        I1I3["I1"] = [float(measurement.peaks["Peak 1"]) for measurement in self.measurements if measurement.enabled]
+        I1I3["I3"] = [float(measurement.peaks["Peak 2"]) for measurement in self.measurements if measurement.enabled]
+        I1I3["concentration"] = [measurement.concentration for measurement in self.measurements if measurement.enabled]
+        I1I3.set_index("concentration(log)", inplace=True)
+        self.emit_I1I3.emit(I1I3)
         
         regression_data = pd.DataFrame({'Y': relatives,'X': concentrations})
         regression_data.sort_values('X', inplace=True)
@@ -231,6 +234,26 @@ class CalculatorWorker(QObject):
         return cac_data
     
 
+class ExportWorker(QObject):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.I1I3 = None
         
         
+    @Slot(pd.DataFrame)
+    def get_I1I3(self, I1I3:pd.DataFrame):
+        self.I1I3:pd.DataFrame = I1I3
         
+    def export_I1I3(self):
+        if self.I1I3 is None:
+            # !JSCH
+            print("There is no I1/I3")
+        else:
+            file_path, selected_filter = QFileDialog.getSaveFileName(
+                caption="Select a directory",
+                directory=str(Path().absolute()),
+                filter="CSV File (*.csv)"
+            )
+            if file_path:
+                self.I1I3.to_csv(file_path)
