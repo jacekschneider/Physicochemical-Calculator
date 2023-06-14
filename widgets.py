@@ -71,6 +71,8 @@ class WidgetCAC(QWidget):
         self.hide_text = True 
         self.graph.showGrid(x=True, y=True)
         self.update(GraphOptions(id="CAC", label_left='I1/I3', label_bottom='logC, mg/ml'))
+        
+        self.cb_logscale.stateChanged.connect(self.logscale_handler)
     
     def load(self, rmse_data:RMSE):
         self.clear()
@@ -88,21 +90,29 @@ class WidgetCAC(QWidget):
         x1,x2 = X[:model_id], X[model_id:]
         y1,y2 = Y[:model_id], Y[model_id:]
         
-        self.items_plot.append(self.graph.plot(x1, y1, pen=None, symbol='o', symbolPen=pg.mkPen("b"),symbolBrush=pg.mkBrush("b"),  symbolSize=7))
-        self.items_plot.append(self.graph.plot(x2, y2, pen=None, symbol='o', symbolPen=pg.mkPen("r"),symbolBrush=pg.mkBrush("r"),  symbolSize=7))
-        #JSCH! -> abline range upgrade
-        self.abline(self.rmse_data.cac_data["a1"], self.rmse_data.cac_data["b1"], start=-3.1, stop=cac_x+0.1, step=0.01)
-        self.abline(self.rmse_data.cac_data["a2"], self.rmse_data.cac_data["b2"], start=cac_x-0.1, stop=1.2, step=0.01)
+        if self.cb_logscale.isChecked():
+            self.items_plot.append(self.graph.plot(x1, y1, pen=None, symbol='o', symbolPen=pg.mkPen("b"),symbolBrush=pg.mkBrush("b"),  symbolSize=7))
+            self.items_plot.append(self.graph.plot(x2, y2, pen=None, symbol='o', symbolPen=pg.mkPen("r"),symbolBrush=pg.mkBrush("r"),  symbolSize=7))
+            #JSCH! -> abline range upgrade
+            self.abline(self.rmse_data.cac_data["a1"], self.rmse_data.cac_data["b1"], start=-3.1, stop=cac_x+0.1, step=0.01)
+            self.abline(self.rmse_data.cac_data["a2"], self.rmse_data.cac_data["b2"], start=cac_x-0.1, stop=1.2, step=0.01)
 
-        pos_x = round(cac_x[0], 3)
-        pos_y = round(cac_y[0], 3)
-        self.items_plot.append(self.graph.plot(cac_x, cac_y, pen=None, symbol='d',
-                                               symbolPen=pg.mkPen("g"),symbolBrush=pg.mkBrush("g"),  symbolSize=9, name="CMC = [{}, {}]".format(pos_x, pos_y)))
+            pos_x = round(cac_x[0], 3)
+            pos_y = round(cac_y[0], 3)
+            self.items_plot.append(self.graph.plot(cac_x, cac_y, pen=None, symbol='d',
+                                                symbolPen=pg.mkPen("g"),symbolBrush=pg.mkBrush("g"),  symbolSize=9, name="CMC = [{}, {}]".format(pos_x, pos_y)))
 
-        # item_text = pg.TextItem(text="CMC = [{}, {}]".format(pos_x, pos_y), color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
-        item_text = pg.TextItem(text=f"CMC = {np.round(10**pos_x, 6)} mg/ml", color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
-        item_text.setPos(cac_x[0], cac_y[0])
-        self.items_text.append(item_text)
+            item_text = pg.TextItem(text=f"CMC = {np.round(10**pos_x, 6)} mg/ml", color=(0, 0, 0), border=pg.mkPen((0, 0, 0)), fill=pg.mkBrush("g"), anchor=(0, 0))
+            item_text.setPos(cac_x[0], cac_y[0])
+            self.items_text.append(item_text)
+        else:
+            self.items_plot.append(self.graph.plot(10**x1, y1, pen=None, symbol='o', symbolPen=pg.mkPen("b"),symbolBrush=pg.mkBrush("b"),  symbolSize=7))
+            self.items_plot.append(self.graph.plot(10**x2, y2, pen=None, symbol='o', symbolPen=pg.mkPen("r"),symbolBrush=pg.mkBrush("r"),  symbolSize=7))
+            pos_x = round(cac_x[0], 3)
+            pos_y = round(cac_y[0], 3)
+            self.items_plot.append(self.graph.plot(10**cac_x, cac_y, pen=None, symbol='d',
+                                                symbolPen=pg.mkPen("g"),symbolBrush=pg.mkBrush("g"),  symbolSize=9, name="CMC = [{}, {}]".format(pos_x, pos_y)))
+
         self.le_CMC.setText(f"{np.round(10**pos_x, 6)}")
         
         imx = ImageExporter(self.graph.scene())
@@ -151,7 +161,9 @@ class WidgetCAC(QWidget):
         else:
             self.graph.setTitle(None)
         
-        
+    def logscale_handler(self):
+        self.clear()
+        self.draw()
         
 class WidgetData(QWidget):
     emit_plot = Signal(ImageExporter)
