@@ -5,10 +5,10 @@ import pathlib
 import copy
 from multipledispatch import dispatch
 from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox, QComboBox, QColorDialog, QPushButton, QListView
-from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject, QSortFilterProxyModel
+from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject
 from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator
 from PyQt6.uic.load_ui import loadUi
-from utils import Measurement, RMSE, symbols, reSortProxyModel, color_gen, gray_color_gen
+from utils import Measurement, RMSE, symbols, reSortProxyModel, color_gen, gray_color_gen, GraphOptions
 from pyqtgraph.exporters import ImageExporter
         
           
@@ -68,14 +68,9 @@ class WidgetCAC(QWidget):
         self.items_plot = []
         self.items_text = []
         self.rmse_data = None
-        self.hide_text = True
-        
+        self.hide_text = True 
         self.graph.showGrid(x=True, y=True)
-        self.legend = self.graph.addLegend(labelTextColor="w", labelTextSize="12")
-        self.legend.anchor((0,0),(0.7,0.1))
-        self.styles = {'color':'white', 'font-size':'17px'}
-        self.graph.setLabel('bottom', 'logC, mg/ml', **self.styles)
-        self.graph.setLabel('left', 'I1/I3', **self.styles)
+        self.update(GraphOptions(id="CAC", label_left='I1/I3', label_bottom='logC, mg/ml'))
     
     def load(self, rmse_data:RMSE):
         self.clear()
@@ -140,6 +135,22 @@ class WidgetCAC(QWidget):
             for text in self.items_text:
                 self.graph.removeItem(text)
             self.hide_text = True
+            
+    def update(self, go:GraphOptions):
+        if not go.id == "CAC": return
+        self.legend = self.graph.addLegend(labelTextColor=go.fontcolor, labelTextSize="{}pt".format(go.legend_textsize))
+        self.legend.anchor((0,0),(0.7,0.1))
+        if not go.legend_on : self.legend.scene().removeItem(self.legend)
+        self.styles = {'color':'rgb({},{},{})'.format(go.fontcolor[0],go.fontcolor[1],go.fontcolor[2]), 'font-size':'{}px'.format(go.fontsize)}
+        self.graph.setLabel('bottom', go.label_bottom, **self.styles)
+        self.graph.setLabel('left', go.label_left, **self.styles)
+        if not go.title == "" :
+            try:
+                self.graph.setTitle(go.title, color=go.fontcolor, size="{}pt".format(go.title_size))
+            except : self.graph.setTitle(None)
+        else:
+            self.graph.setTitle(None)
+        
         
         
 class WidgetData(QWidget):
@@ -153,12 +164,7 @@ class WidgetData(QWidget):
         self.items_plot = []
         
         self.graph.showGrid(x=True, y=True)
-        self.legend = self.graph.addLegend(labelTextColor="w", labelTextSize="12")
-        self.legend.anchor((0,0),(0.7,0.1))
-        self.styles = {'color':'white', 'font-size':'17px'}
-        self.graph.setLabel('bottom', 'Wavelength, nm', **self.styles)
-        self.graph.setLabel('left', 'Intensity', **self.styles)
-        
+        self.update(GraphOptions(id="DATA", label_left='Intensity', label_bottom='Wavelength, nm', title="Emission Spectrum"))
         self.cb_measurements.activated.connect(self.display)
 
     def load(self, measurements:list):
@@ -250,6 +256,22 @@ class WidgetData(QWidget):
         for measurement in self.measurements:
             measurement.set_displayed(concentration in measurement.name.replace(',','.') or concentration == '*') 
         self.draw()
+        
+    def update(self, go:GraphOptions):
+
+        if not go.id == "DATA": return
+        self.legend = self.graph.addLegend(labelTextColor=go.fontcolor, labelTextSize="{}pt".format(go.legend_textsize))
+        self.legend.anchor((0,0),(0.7,0.1))
+        if not go.legend_on : self.legend.scene().removeItem(self.legend)
+        self.styles = {'color':'rgb({},{},{})'.format(go.fontcolor[0],go.fontcolor[1],go.fontcolor[2]), 'font-size':'{}px'.format(go.fontsize)}
+        self.graph.setLabel('bottom', go.label_bottom, **self.styles)
+        self.graph.setLabel('left', go.label_left, **self.styles)
+        if not go.title == "" :
+            try:
+                self.graph.setTitle(go.title, color=go.fontcolor, size="{}pt".format(go.title_size))
+            except : self.graph.setTitle(None)
+        else:
+            self.graph.setTitle(None)
 
 class SettingsRow(QObject):
     emit_update = Signal(list)
@@ -267,8 +289,7 @@ class SettingsRow(QObject):
         
         self.le_peak1 = QLineEdit("373")
         self.le_peak1_validator = QIntValidator(360, 380)
-        self.le_peak1.setValidator(self.le_peak1_validator)
-        
+        self.le_peak1.setValidator(self.le_peak1_validator)      
         self.le_peak2 = QLineEdit("384")
         self.le_peak2_validator = QIntValidator(370, 390)
         self.le_peak2.setValidator(self.le_peak2_validator)
@@ -430,6 +451,8 @@ class SettingsRow(QObject):
     def get_widgets(self) -> list:
         list_widget = []
         list_widget.append(self.le_title)
+        list_widget.append(self.chb_enable)
+        list_widget.append(self.chb_display)
         list_widget.append(self.le_window_width)
         list_widget.append(self.le_peak1)
         list_widget.append(self.le_peak2)
@@ -438,8 +461,7 @@ class SettingsRow(QObject):
         list_widget.append(self.cob_symbol)
         list_widget.append(self.button_symbol_fill)
         list_widget.append(self.le_symbol_size)
-        list_widget.append(self.chb_display)
-        list_widget.append(self.chb_enable)
+
         return list_widget
     
     def get_measurement(self) -> Measurement:
@@ -456,7 +478,7 @@ class SettingsRow(QObject):
         self.refresh()
     
     def refresh(self):
-        self.le_title.setText(self.measurement.name)
+        self.le_title.setText(self.measurement.name.split(' ')[-1])
         self.le_window_width.setText(str(self.measurement.window_width))
         self.le_peak1.setText(str(self.measurement.peak1_raw))
         self.le_peak2.setText(str(self.measurement.peak2_raw))
@@ -483,12 +505,13 @@ class WidgetGraphCustomization(QWidget):
         self.measurements_raw:list[Measurement] = measurements
         self.settings_rows:list[SettingsRow] = []
         self.model = QStandardItemModel()
-        self.labels = ["concentration", "window width (1-10)", "peak1 (360-380)", "peak2 (370-390)", 
-                       "pen color", "pen enable", "symbol", "symbol color", "symbol size (3-12)", "display", "enable"]
+        self.labels = ["concentration","enable", "display", "window width (1-10)", "peak1 (360-380)", "peak2 (370-390)", 
+                       "pen color", "pen enable", "symbol", "symbol color", "symbol size (3-12)" ]
         self.model.setHorizontalHeaderLabels(self.labels)
         self.tree.setModel(self.model)
         for (index, measurement) in enumerate(self.measurements_raw):
-            self.create_row(index_row = index, measurement=measurement)
+            self.create_row(index_row = index, measurement=measurement)  
+            self.tree.resizeColumnToContents(index)
             
         self.pb_apply.clicked.connect(self.apply)
         self.pb_cancel.clicked.connect(self.cancel)
@@ -541,11 +564,10 @@ class WidgetGraphCustomization(QWidget):
                 elif option == "display":
                     row.change_display_ex(value)
                 elif option == "enable":
-                    row.change_enable_ex(value)
+                    # enable not available for column
+                    # row.change_enable_ex(value)
+                    pass
             
-        
-            
-        
     def cancel(self):
         self.close()
         
@@ -572,8 +594,56 @@ class WidgetGraphCustomization(QWidget):
                 return
         
 
+class WidgetGraphOptions(QWidget):
+    emit_go = Signal(GraphOptions)
+    def __init__(self, go_cac, go_data, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        loadUi("UI/ui_settings_graph_options.ui", self)
 
-
-
+        self.go_cac = go_cac
+        self.go_data = go_data
+        self.go:GraphOptions
+        self.load()
         
+        self.cb_graph.currentIndexChanged.connect(self.load)
+        self.pb_color.clicked.connect(self.change_colour)
+        self.pb_cancel.clicked.connect(self.cancel)
+        self.pb_apply.clicked.connect(self.apply)
+
+    def load(self):
+        option=self.cb_graph.currentText()
+        if option == "CMC":
+            self.go = self.go_cac
+        elif option == "Emission Spectrum":
+            self.go = self.go_data
+        else: return
+        self.le_labelleft.setText(self.go.label_left)
+        self.le_labelbottom.setText(self.go.label_bottom)
+        self.sb_fontsize.setValue(self.go.fontsize)
+        self.le_title.setText(self.go.title)
+        self.sb_titlefontsize.setValue(self.go.title_size)
+        self.sb_legendtextsize.setValue(self.go.legend_textsize)
+        self.cb_legendon.setChecked(self.go.legend_on)
+        self.pb_color.setStyleSheet("background-color:rgb({},{},{})".format(self.go.fontcolor[0],self.go.fontcolor[1],self.go.fontcolor[2]))
+        
+    def change_colour(self):
+        colour = QColorDialog.getColor()
+        rgb = [colour.red(), colour.green(), colour.blue()]
+        self.go.fontcolor=rgb
+        self.pb_color.setStyleSheet("background-color:rgb({},{},{})".format(self.go.fontcolor[0],self.go.fontcolor[1],self.go.fontcolor[2]))
+        
+    def cancel(self):
+        self.close()
+        
+    def apply(self):
+        self.go.label_left = self.le_labelleft.text()
+        self.go.label_bottom = self.le_labelbottom.text()
+        self.go.fontsize = self.sb_fontsize.value()
+        self.go.legend_on = self.cb_legendon.isChecked()
+        self.go.legend_textsize = self.sb_legendtextsize.value()
+        self.go.title = self.le_title.text()
+        self.go.title_size = self.sb_titlefontsize.value()
+        self.emit_go.emit(self.go)
+        self.close()
+
         

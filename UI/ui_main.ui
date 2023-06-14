@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1016</width>
-    <height>625</height>
+    <height>659</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -93,6 +93,7 @@
      <string>Settings</string>
     </property>
     <addaction name="action_graph_customization"/>
+    <addaction name="action_graph_options"/>
    </widget>
    <addaction name="menuLanguages"/>
    <addaction name="menuReport"/>
@@ -140,6 +141,11 @@
   <action name="action_graph_customization">
    <property name="text">
     <string>Graph Customization...</string>
+   </property>
+  </action>
+  <action name="action_graph_options">
+   <property name="text">
+    <string>Graph Options...</string>
    </property>
   </action>
  </widget>
