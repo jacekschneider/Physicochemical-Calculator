@@ -70,9 +70,7 @@ class WidgetCAC(QWidget):
         self.rmse_data = None
         self.hide_text = True 
         self.graph.showGrid(x=True, y=True)
-        
-
-        self.update(GraphOptions(label_left='I1/I3', label_bottom='logC, mg/ml'))
+        self.update(GraphOptions(id="CAC", label_left='I1/I3', label_bottom='logC, mg/ml'))
     
     def load(self, rmse_data:RMSE):
         self.clear()
@@ -139,6 +137,7 @@ class WidgetCAC(QWidget):
             self.hide_text = True
             
     def update(self, go:GraphOptions):
+        if not go.id == "CAC": return
         self.legend = self.graph.addLegend(labelTextColor=go.fontcolor, labelTextSize="{}pt".format(go.legend_textsize))
         self.legend.anchor((0,0),(0.7,0.1))
         if not go.legend_on : self.legend.scene().removeItem(self.legend)
@@ -165,9 +164,7 @@ class WidgetData(QWidget):
         self.items_plot = []
         
         self.graph.showGrid(x=True, y=True)
-        
-        self.update(GraphOptions(label_left='Intensity', label_bottom='Wavelength, nm', title="Emission Spectrum"))
-        
+        self.update(GraphOptions(id="DATA", label_left='Intensity', label_bottom='Wavelength, nm', title="Emission Spectrum"))
         self.cb_measurements.activated.connect(self.display)
 
     def load(self, measurements:list):
@@ -261,6 +258,8 @@ class WidgetData(QWidget):
         self.draw()
         
     def update(self, go:GraphOptions):
+
+        if not go.id == "DATA": return
         self.legend = self.graph.addLegend(labelTextColor=go.fontcolor, labelTextSize="{}pt".format(go.legend_textsize))
         self.legend.anchor((0,0),(0.7,0.1))
         if not go.legend_on : self.legend.scene().removeItem(self.legend)
@@ -569,9 +568,6 @@ class WidgetGraphCustomization(QWidget):
                     # row.change_enable_ex(value)
                     pass
             
-        
-            
-        
     def cancel(self):
         self.close()
         
@@ -599,12 +595,55 @@ class WidgetGraphCustomization(QWidget):
         
 
 class WidgetGraphOptions(QWidget):
-    emit_go_cac = Signal(GraphOptions)
-    emit_go_data = Signal(GraphOptions)
-    
-    def __init__(self, *args, **kwargs):
+    emit_go = Signal(GraphOptions)
+    def __init__(self, go_cac, go_data, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        loadUi("UI/ui_settings_graph_data.ui", self)
+        loadUi("UI/ui_settings_graph_options.ui", self)
 
+        self.go_cac = go_cac
+        self.go_data = go_data
+        self.go:GraphOptions
+        self.load()
         
+        self.cb_graph.currentIndexChanged.connect(self.load)
+        self.pb_color.clicked.connect(self.change_colour)
+        self.pb_cancel.clicked.connect(self.cancel)
+        self.pb_apply.clicked.connect(self.apply)
+
+    def load(self):
+        option=self.cb_graph.currentText()
+        if option == "CMC":
+            self.go = self.go_cac
+        elif option == "Emission Spectrum":
+            self.go = self.go_data
+        else: return
+        self.le_labelleft.setText(self.go.label_left)
+        self.le_labelbottom.setText(self.go.label_bottom)
+        self.sb_fontsize.setValue(self.go.fontsize)
+        self.le_title.setText(self.go.title)
+        self.sb_titlefontsize.setValue(self.go.title_size)
+        self.sb_legendtextsize.setValue(self.go.legend_textsize)
+        self.cb_legendon.setChecked(self.go.legend_on)
+        self.pb_color.setStyleSheet("background-color:rgb({},{},{})".format(self.go.fontcolor[0],self.go.fontcolor[1],self.go.fontcolor[2]))
+        
+    def change_colour(self):
+        colour = QColorDialog.getColor()
+        rgb = [colour.red(), colour.green(), colour.blue()]
+        self.go.fontcolor=rgb
+        self.pb_color.setStyleSheet("background-color:rgb({},{},{})".format(self.go.fontcolor[0],self.go.fontcolor[1],self.go.fontcolor[2]))
+        
+    def cancel(self):
+        self.close()
+        
+    def apply(self):
+        self.go.label_left = self.le_labelleft.text()
+        self.go.label_bottom = self.le_labelbottom.text()
+        self.go.fontsize = self.sb_fontsize.value()
+        self.go.legend_on = self.cb_legendon.isChecked()
+        self.go.legend_textsize = self.sb_legendtextsize.value()
+        self.go.title = self.le_title.text()
+        self.go.title_size = self.sb_titlefontsize.value()
+        self.emit_go.emit(self.go)
+        self.close()
+
         
