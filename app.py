@@ -1,6 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6.uic.load_ui import loadUi
+from PyQt6.QtCore import QTranslator, QCoreApplication
 from workers import ReportWorker, SettingsWorker, CalculatorWorker, ExportWorker, GraphOptionsWorker
 from widgets import WidgetGraphCustomization, WidgetGraphOptions
 
@@ -8,6 +9,9 @@ class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         loadUi("UI/ui_main.ui", self)
+        
+        self.trl = QTranslator()
+        QCoreApplication.installTranslator(self.trl)
 
         # Workers
         self.report_worker = ReportWorker()
@@ -16,8 +20,12 @@ class MainWindow(QMainWindow):
         self.export_worker = ExportWorker()
         self.go_worker = GraphOptionsWorker()
 
+        self.reinit()
+        self.show()
         
+    def reinit(self):
         #Connections
+        self.action_de.triggered.connect(self.set_de)
         self.widget_navigation.emit_dirpath.connect(self.settings_worker.load)
         self.settings_worker.emit_measurements.connect(self.widget_data.load)
         self.settings_worker.emit_measurements.connect(self.calculator_worker.load)
@@ -34,8 +42,6 @@ class MainWindow(QMainWindow):
         self.go_worker.emit_go.connect(self.widget_data.update)
         self.go_worker.emit_go.connect(self.widget_cac.update)
         
-        self.show()
-        
     def show_customization(self):
         self.widget_customization = WidgetGraphCustomization(self.settings_worker.get_measurements_raw(), self.settings_worker.get_measurements())
         self.widget_customization.emit_measurements.connect(self.settings_worker.load)
@@ -45,6 +51,14 @@ class MainWindow(QMainWindow):
         self.widget_go = WidgetGraphOptions(go_cac=self.go_worker.CAC(), go_data=self.go_worker.DATA())
         self.widget_go.emit_go.connect(self.go_worker.load)
         self.widget_go.show()
+        
+    def set_de(self):
+        self.trl.load("de.qm", "UI")
+        self.retranslate()
+    
+    def retranslate(self):
+        loadUi("UI/ui_main.ui", self)
+        self.reinit()
             
 if __name__ == '__main__':
     app = QApplication(sys.argv)

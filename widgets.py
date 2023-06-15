@@ -274,7 +274,7 @@ class WidgetData(QWidget):
         if not go.id == "DATA": return
         self.legend = self.graph.addLegend(labelTextColor=go.fontcolor, labelTextSize="{}pt".format(go.legend_textsize))
         self.legend.anchor((0,0),(0.7,0.1))
-        if not go.legend_on : self.legend.scene().removeItem(self.legend)
+        self.legend.setVisible(go.legend_on)
         self.styles = {'color':'rgb({},{},{})'.format(go.fontcolor[0],go.fontcolor[1],go.fontcolor[2]), 'font-size':'{}px'.format(go.fontsize)}
         self.graph.setLabel('bottom', go.label_bottom, **self.styles)
         self.graph.setLabel('left', go.label_left, **self.styles)
@@ -623,10 +623,10 @@ class WidgetGraphOptions(QWidget):
         self.pb_apply.clicked.connect(self.apply)
 
     def load(self):
-        option=self.cb_graph.currentText()
-        if option == "CMC":
+        option=self.cb_graph.currentIndex()
+        if option == 1:
             self.go = self.go_cac
-        elif option == "Emission Spectrum":
+        elif option == 0:
             self.go = self.go_data
         else: return
         self.le_labelleft.setText(self.go.label_left)

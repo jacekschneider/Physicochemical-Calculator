@@ -72,15 +72,15 @@
     <property name="title">
      <string>Languages</string>
     </property>
-    <addaction name="actionEnglish"/>
-    <addaction name="actionDeutsch"/>
-    <addaction name="actionPolski"/>
+    <addaction name="action_en"/>
+    <addaction name="action_de"/>
+    <addaction name="action_pl"/>
    </widget>
-   <widget class="QMenu" name="menuHelp">
+   <widget class="QMenu" name="menu_help">
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionWelcome"/>
+    <addaction name="action_welcome"/>
    </widget>
    <widget class="QMenu" name="menuReport">
     <property name="title">
@@ -98,10 +98,10 @@
    <addaction name="menuLanguages"/>
    <addaction name="menuReport"/>
    <addaction name="menuSettings"/>
-   <addaction name="menuHelp"/>
+   <addaction name="menu_help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionEnglish">
+  <action name="action_en">
    <property name="icon">
     <iconset>
      <normaloff>../icons/us.png</normaloff>../icons/us.png</iconset>
@@ -110,7 +110,7 @@
     <string>English</string>
    </property>
   </action>
-  <action name="actionDeutsch">
+  <action name="action_de">
    <property name="icon">
     <iconset>
      <normaloff>../icons/de.png</normaloff>../icons/de.png</iconset>
@@ -119,7 +119,7 @@
     <string>Deutsch</string>
    </property>
   </action>
-  <action name="actionPolski">
+  <action name="action_pl">
    <property name="icon">
     <iconset>
      <normaloff>../icons/pl.png</normaloff>../icons/pl.png</iconset>
@@ -128,7 +128,7 @@
     <string>Polski</string>
    </property>
   </action>
-  <action name="actionWelcome">
+  <action name="action_welcome">
    <property name="text">
     <string>Welcome</string>
    </property>
