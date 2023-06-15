@@ -6,7 +6,7 @@ import copy
 from multipledispatch import dispatch
 from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox, QComboBox, QColorDialog, QPushButton, QListView
 from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject
-from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator
+from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator, QColor
 from PyQt6.uic.load_ui import loadUi
 from utils import Measurement, RMSE, symbols, reSortProxyModel, color_gen, gray_color_gen, GraphOptions
 from pyqtgraph.exporters import ImageExporter
@@ -150,7 +150,7 @@ class WidgetCAC(QWidget):
         if not go.id == "CAC": return
         self.legend = self.graph.addLegend(labelTextColor=go.fontcolor, labelTextSize="{}pt".format(go.legend_textsize))
         self.legend.anchor((0,0),(0.7,0.1))
-        if not go.legend_on : self.legend.scene().removeItem(self.legend)
+        self.legend.setVisible(go.legend_on)
         self.styles = {'color':'rgb({},{},{})'.format(go.fontcolor[0],go.fontcolor[1],go.fontcolor[2]), 'font-size':'{}px'.format(go.fontsize)}
         self.graph.setLabel('bottom', go.label_bottom, **self.styles)
         self.graph.setLabel('left', go.label_left, **self.styles)
