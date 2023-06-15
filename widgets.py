@@ -6,7 +6,7 @@ import copy
 from multipledispatch import dispatch
 from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox, QComboBox, QColorDialog, QPushButton, QListView
 from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject
-from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator
+from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator, QColor
 from PyQt6.uic.load_ui import loadUi
 from utils import Measurement, RMSE, symbols, reSortProxyModel, color_gen, gray_color_gen, GraphOptions
 from pyqtgraph.exporters import ImageExporter
@@ -150,7 +150,7 @@ class WidgetCAC(QWidget):
         if not go.id == "CAC": return
         self.legend = self.graph.addLegend(labelTextColor=go.fontcolor, labelTextSize="{}pt".format(go.legend_textsize))
         self.legend.anchor((0,0),(0.7,0.1))
-        if not go.legend_on : self.legend.scene().removeItem(self.legend)
+        self.legend.setVisible(go.legend_on)
         self.styles = {'color':'rgb({},{},{})'.format(go.fontcolor[0],go.fontcolor[1],go.fontcolor[2]), 'font-size':'{}px'.format(go.fontsize)}
         self.graph.setLabel('bottom', go.label_bottom, **self.styles)
         self.graph.setLabel('left', go.label_left, **self.styles)
@@ -274,7 +274,7 @@ class WidgetData(QWidget):
         if not go.id == "DATA": return
         self.legend = self.graph.addLegend(labelTextColor=go.fontcolor, labelTextSize="{}pt".format(go.legend_textsize))
         self.legend.anchor((0,0),(0.7,0.1))
-        if not go.legend_on : self.legend.scene().removeItem(self.legend)
+        self.legend.setVisible(go.legend_on)
         self.styles = {'color':'rgb({},{},{})'.format(go.fontcolor[0],go.fontcolor[1],go.fontcolor[2]), 'font-size':'{}px'.format(go.fontsize)}
         self.graph.setLabel('bottom', go.label_bottom, **self.styles)
         self.graph.setLabel('left', go.label_left, **self.styles)
@@ -592,12 +592,12 @@ class WidgetGraphCustomization(QWidget):
             self.settings_rows[index].set_measurement(measurement)
             
     def change_stylesheet(self):
-        stylesheet = self.cb_stylesheet.currentText()
+        stylesheet_idx = self.cb_stylesheet.currentIndex()
         fill_symbol = self.chb_fillsymbol.isChecked()
         for (index,  row) in enumerate(self.settings_rows):
-            if stylesheet == "Random":
+            if stylesheet_idx == 0:
                 color = color_gen()
-            if stylesheet == "Grayscale":
+            if stylesheet_idx == 1:
                 color = gray_color_gen(index, len(self.settings_rows))
             try:
                 row.change_pen_colour_ex(color)
@@ -623,10 +623,10 @@ class WidgetGraphOptions(QWidget):
         self.pb_apply.clicked.connect(self.apply)
 
     def load(self):
-        option=self.cb_graph.currentText()
-        if option == "CMC":
+        option=self.cb_graph.currentIndex()
+        if option == 1:
             self.go = self.go_cac
-        elif option == "Emission Spectrum":
+        elif option == 0:
             self.go = self.go_data
         else: return
         self.le_labelleft.setText(self.go.label_left)

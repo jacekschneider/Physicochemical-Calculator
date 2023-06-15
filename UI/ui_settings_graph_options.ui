@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>GraphOptions</class>
+ <widget class="QWidget" name="GraphOptions">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Graph Options</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../icons/icon_settings.png</normaloff>../icons/icon_settings.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_6">
    <item>
