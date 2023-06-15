@@ -26,6 +26,8 @@ class MainWindow(QMainWindow):
     def reinit(self):
         #Connections
         self.action_de.triggered.connect(self.set_de)
+        self.action_pl.triggered.connect(self.set_pl)
+        self.action_en.triggered.connect(self.set_en)
         self.widget_navigation.emit_dirpath.connect(self.settings_worker.load)
         self.settings_worker.emit_measurements.connect(self.widget_data.load)
         self.settings_worker.emit_measurements.connect(self.calculator_worker.load)
@@ -55,10 +57,19 @@ class MainWindow(QMainWindow):
     def set_de(self):
         self.trl.load("de.qm", "UI")
         self.retranslate()
+        
+    def set_pl(self):
+        self.trl.load("pl.qm", "UI")
+        self.retranslate()
+        
+    def set_en(self):
+        self.trl.load("", "UI")
+        self.retranslate()
     
     def retranslate(self):
         loadUi("UI/ui_main.ui", self)
         self.reinit()
+  
             
 if __name__ == '__main__':
     app = QApplication(sys.argv)

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1">
+<TS version="2.1" language="pl_PL" sourcelanguage="en_US">
 <context>
     <name>Calculator</name>
     <message>
         <location filename="ui_main.ui" line="14"/>
         <source>Physicochemical Calculator</source>
-        <translation type="unfinished"></translation>
+        <translation>Kalkulator fizykochemiczny</translation>
     </message>
     <message>
         <location filename="ui_main.ui" line="44"/>
         <source>Data</source>
-        <translation type="unfinished"></translation>
+        <translation>Dane</translation>
     </message>
     <message>
         <location filename="ui_main.ui" line="52"/>
@@ -21,132 +21,132 @@
     <message>
         <location filename="ui_main.ui" line="73"/>
         <source>Languages</source>
-        <translation type="unfinished"></translation>
+        <translation>Język</translation>
     </message>
     <message>
         <location filename="ui_main.ui" line="81"/>
         <source>Help</source>
-        <translation type="unfinished"></translation>
+        <translation>Pomoc</translation>
     </message>
     <message>
         <location filename="ui_main.ui" line="87"/>
         <source>Report</source>
-        <translation type="unfinished"></translation>
+        <translation>Raport</translation>
     </message>
     <message>
         <location filename="ui_main.ui" line="93"/>
         <source>Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Ustawienia</translation>
     </message>
     <message>
         <location filename="ui_main.ui" line="110"/>
         <source>English</source>
-        <translation type="unfinished"></translation>
+        <translation>Angielski</translation>
     </message>
     <message>
         <location filename="ui_main.ui" line="119"/>
         <source>Deutsch</source>
-        <translation type="unfinished"></translation>
+        <translation>Niemiecki</translation>
     </message>
     <message>
         <location filename="ui_main.ui" line="128"/>
         <source>Polski</source>
-        <translation type="unfinished"></translation>
+        <translation>Polski</translation>
     </message>
     <message>
         <location filename="ui_main.ui" line="133"/>
         <source>Welcome</source>
-        <translation type="unfinished"></translation>
+        <translation>Instrukcja</translation>
     </message>
     <message>
         <location filename="ui_main.ui" line="138"/>
         <source>Generate ...</source>
-        <translation type="unfinished"></translation>
+        <translation>Generuj...</translation>
     </message>
     <message>
         <location filename="ui_main.ui" line="143"/>
         <source>Graph Customization...</source>
-        <translation type="unfinished"></translation>
+        <translation>Dostosowanie Grafu...</translation>
     </message>
     <message>
         <location filename="ui_main.ui" line="148"/>
         <source>Graph Options...</source>
-        <translation type="unfinished"></translation>
+        <translation>Opcje Grafu...</translation>
     </message>
 </context>
 <context>
-    <name>Form</name>
+    <name>GraphOptions</name>
     <message>
         <location filename="ui_settings_graph_options.ui" line="14"/>
-        <source>Form</source>
-        <translation type="unfinished"></translation>
+        <source>Graph Options</source>
+        <translation>Opcje Grafu</translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="21"/>
+        <location filename="ui_settings_graph_options.ui" line="25"/>
         <source>Emission Spectrum</source>
-        <translation type="unfinished"></translation>
+        <translation>Spektrum Emisyjne</translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="26"/>
+        <location filename="ui_settings_graph_options.ui" line="30"/>
         <source>CMC</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="51"/>
+        <location filename="ui_settings_graph_options.ui" line="55"/>
         <source>Labels</source>
-        <translation type="unfinished"></translation>
+        <translation>Opisy osi</translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="81"/>
+        <location filename="ui_settings_graph_options.ui" line="85"/>
         <source>Left</source>
-        <translation type="unfinished"></translation>
+        <translation>Oś Y</translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="115"/>
+        <location filename="ui_settings_graph_options.ui" line="119"/>
         <source>Bottom</source>
-        <translation type="unfinished"></translation>
+        <translation>Oś X</translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="149"/>
-        <location filename="ui_settings_graph_options.ui" line="245"/>
+        <location filename="ui_settings_graph_options.ui" line="153"/>
+        <location filename="ui_settings_graph_options.ui" line="249"/>
         <source>Font Size</source>
-        <translation type="unfinished"></translation>
+        <translation>Rozmari Czcionki</translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="187"/>
-        <location filename="ui_settings_graph_options.ui" line="211"/>
+        <location filename="ui_settings_graph_options.ui" line="191"/>
+        <location filename="ui_settings_graph_options.ui" line="215"/>
         <source>Title</source>
-        <translation type="unfinished"></translation>
+        <translation>Tytuł</translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="283"/>
+        <location filename="ui_settings_graph_options.ui" line="287"/>
         <source>Legend</source>
-        <translation type="unfinished"></translation>
+        <translation>Legenda</translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="307"/>
+        <location filename="ui_settings_graph_options.ui" line="311"/>
         <source>Legend On/Off</source>
-        <translation type="unfinished"></translation>
+        <translation>Legenda Włącz/Wyłącz</translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="341"/>
+        <location filename="ui_settings_graph_options.ui" line="345"/>
         <source>Legend Text Size</source>
-        <translation type="unfinished"></translation>
+        <translation>Rozmiar Tekstu</translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="379"/>
+        <location filename="ui_settings_graph_options.ui" line="383"/>
         <source>Font Color</source>
-        <translation type="unfinished"></translation>
+        <translation>Color Czcionki</translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="425"/>
+        <location filename="ui_settings_graph_options.ui" line="429"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="ui_settings_graph_options.ui" line="432"/>
+        <location filename="ui_settings_graph_options.ui" line="436"/>
         <source>Apply</source>
-        <translation type="unfinished"></translation>
+        <translation>Zaakceptuj</translation>
     </message>
 </context>
 <context>
@@ -154,52 +154,52 @@
     <message>
         <location filename="ui_settings_graph_data.ui" line="32"/>
         <source>Graph Customization</source>
-        <translation type="unfinished"></translation>
+        <translation>Dostosowanie Grafu</translation>
     </message>
     <message>
         <location filename="ui_settings_graph_data.ui" line="56"/>
         <source>Style sheet</source>
-        <translation type="unfinished"></translation>
+        <translation>Paleta kolorów</translation>
     </message>
     <message>
         <location filename="ui_settings_graph_data.ui" line="64"/>
         <source>Random</source>
-        <translation type="unfinished"></translation>
+        <translation>Losowe</translation>
     </message>
     <message>
         <location filename="ui_settings_graph_data.ui" line="69"/>
         <source>Grayscale</source>
-        <translation type="unfinished"></translation>
+        <translation>Skala szarości</translation>
     </message>
     <message>
         <location filename="ui_settings_graph_data.ui" line="77"/>
         <source>Fill symbol</source>
-        <translation type="unfinished"></translation>
+        <translation>Wypełnienie symbolu</translation>
     </message>
     <message>
         <location filename="ui_settings_graph_data.ui" line="104"/>
         <source>Restore default</source>
-        <translation type="unfinished"></translation>
+        <translation>Przywróć domyślne</translation>
     </message>
     <message>
         <location filename="ui_settings_graph_data.ui" line="165"/>
         <source>Apply to column</source>
-        <translation type="unfinished"></translation>
+        <translation>Zastosuj dla kolumny</translation>
     </message>
     <message>
         <location filename="ui_settings_graph_data.ui" line="185"/>
         <source>Reset</source>
-        <translation type="unfinished"></translation>
+        <translation>Reset</translation>
     </message>
     <message>
         <location filename="ui_settings_graph_data.ui" line="192"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="ui_settings_graph_data.ui" line="199"/>
         <source>Apply</source>
-        <translation type="unfinished"></translation>
+        <translation>Zastosuj</translation>
     </message>
 </context>
 <context>
@@ -212,7 +212,7 @@
     <message>
         <location filename="ui_cac.ui" line="66"/>
         <source>Method</source>
-        <translation type="unfinished"></translation>
+        <translation>Metoda</translation>
     </message>
     <message>
         <location filename="ui_cac.ui" line="86"/>
@@ -227,12 +227,12 @@
     <message>
         <location filename="ui_cac.ui" line="192"/>
         <source>Export</source>
-        <translation type="unfinished"></translation>
+        <translation>Exportuj</translation>
     </message>
     <message>
         <location filename="ui_cac.ui" line="238"/>
         <source>Log Scale</source>
-        <translation type="unfinished"></translation>
+        <translation>Skala log.</translation>
     </message>
 </context>
 <context>
@@ -245,7 +245,7 @@
     <message>
         <location filename="ui_data.ui" line="54"/>
         <source>Concentration</source>
-        <translation type="unfinished"></translation>
+        <translation>Stężenie</translation>
     </message>
     <message>
         <location filename="ui_data.ui" line="74"/>
@@ -273,17 +273,17 @@
     <message>
         <location filename="ui_navigation.ui" line="60"/>
         <source>Load Data</source>
-        <translation type="unfinished"></translation>
+        <translation>Wczytaj dane</translation>
     </message>
     <message>
         <location filename="ui_navigation.ui" line="79"/>
         <source>Clear Data</source>
-        <translation type="unfinished"></translation>
+        <translation>Wyczyść</translation>
     </message>
     <message>
         <location filename="ui_navigation.ui" line="90"/>
         <source>Path</source>
-        <translation type="unfinished"></translation>
+        <translation>Ścieżka</translation>
     </message>
 </context>
 </TS>

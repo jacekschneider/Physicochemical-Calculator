@@ -592,12 +592,12 @@ class WidgetGraphCustomization(QWidget):
             self.settings_rows[index].set_measurement(measurement)
             
     def change_stylesheet(self):
-        stylesheet = self.cb_stylesheet.currentText()
+        stylesheet_idx = self.cb_stylesheet.currentIndex()
         fill_symbol = self.chb_fillsymbol.isChecked()
         for (index,  row) in enumerate(self.settings_rows):
-            if stylesheet == "Random":
+            if stylesheet_idx == 0:
                 color = color_gen()
-            if stylesheet == "Grayscale":
+            if stylesheet_idx == 1:
                 color = gray_color_gen(index, len(self.settings_rows))
             try:
                 row.change_pen_colour_ex(color)
