@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1016</width>
-    <height>600</height>
+    <height>659</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,7 +34,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="WidgetData" name="widget_data">
        <property name="acceptDrops">
@@ -72,15 +72,15 @@
     <property name="title">
      <string>Languages</string>
     </property>
-    <addaction name="actionEnglish"/>
-    <addaction name="actionDeutsch"/>
-    <addaction name="actionPolski"/>
+    <addaction name="action_en"/>
+    <addaction name="action_de"/>
+    <addaction name="action_pl"/>
    </widget>
-   <widget class="QMenu" name="menuHelp">
+   <widget class="QMenu" name="menu_help">
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionWelcome"/>
+    <addaction name="action_welcome"/>
    </widget>
    <widget class="QMenu" name="menuReport">
     <property name="title">
@@ -93,14 +93,15 @@
      <string>Settings</string>
     </property>
     <addaction name="action_graph_customization"/>
+    <addaction name="action_graph_options"/>
    </widget>
    <addaction name="menuLanguages"/>
    <addaction name="menuReport"/>
    <addaction name="menuSettings"/>
-   <addaction name="menuHelp"/>
+   <addaction name="menu_help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionEnglish">
+  <action name="action_en">
    <property name="icon">
     <iconset>
      <normaloff>../icons/us.png</normaloff>../icons/us.png</iconset>
@@ -109,7 +110,7 @@
     <string>English</string>
    </property>
   </action>
-  <action name="actionDeutsch">
+  <action name="action_de">
    <property name="icon">
     <iconset>
      <normaloff>../icons/de.png</normaloff>../icons/de.png</iconset>
@@ -118,7 +119,7 @@
     <string>Deutsch</string>
    </property>
   </action>
-  <action name="actionPolski">
+  <action name="action_pl">
    <property name="icon">
     <iconset>
      <normaloff>../icons/pl.png</normaloff>../icons/pl.png</iconset>
@@ -127,7 +128,7 @@
     <string>Polski</string>
    </property>
   </action>
-  <action name="actionWelcome">
+  <action name="action_welcome">
    <property name="text">
     <string>Welcome</string>
    </property>
@@ -140,6 +141,11 @@
   <action name="action_graph_customization">
    <property name="text">
     <string>Graph Customization...</string>
+   </property>
+  </action>
+  <action name="action_graph_options">
+   <property name="text">
+    <string>Graph Options...</string>
    </property>
   </action>
  </widget>
