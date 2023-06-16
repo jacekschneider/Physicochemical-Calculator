@@ -36,6 +36,9 @@ class ReportWorker(QObject):
 
     def set_dataview_plot(self, exported_image):
         self.dataview_plot = exported_image
+
+    def set_model_data(self, RMSE):
+        self.RMSE = RMSE
         
     def generate(self):
         file_path, selected_filter = QFileDialog.getSaveFileName(
@@ -108,10 +111,6 @@ class ReportWorker(QObject):
             paragraph("Chosen model metrics",
                     f"Model parameters (y = ax + b) a: {0.088} b: {0.000011}",
                     f"Model Root Mean Square Error: {0.001}",
-                    f"Model coeffcient of determiantion (R\u00b2): {1}",
-                    f"Model coeffcient of determiantion (R\u00b2): {1}",
-                    f"Model coeffcient of determiantion (R\u00b2): {1}",
-                    f"Model coeffcient of determiantion (R\u00b2): {1}",
                     f"Model coeffcient of determiantion (R\u00b2): {1}",)
             canvas.save()
             # reinitialising the offset
