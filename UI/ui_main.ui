@@ -153,19 +153,19 @@
   <customwidget>
    <class>WidgetNavigation</class>
    <extends>QWidget</extends>
-   <header>widgets</header>
+   <header>widgets.navigation</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>WidgetCAC</class>
    <extends>QWidget</extends>
-   <header>widgets</header>
+   <header>widgets.cac</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>WidgetData</class>
    <extends>QWidget</extends>
-   <header>widgets</header>
+   <header>widgets.data</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

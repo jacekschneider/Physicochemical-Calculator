@@ -7,7 +7,8 @@ from workers.data_loader import DataLoaderWorker
 from workers.exporter import ExportWorker
 from workers.graph_options import GraphOptionsWorker
 from workers.report_generator import ReportGeneratorWorker
-from widgets import WidgetGraphCustomization, WidgetGraphOptions
+from widgets.graph_customization import WidgetGraphCustomization
+from widgets.graph_options import WidgetGraphOptions
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
