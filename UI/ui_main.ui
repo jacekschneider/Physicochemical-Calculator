@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../icons/chemistry_1.png</normaloff>../icons/chemistry_1.png</iconset>
+    <normaloff>../resources/icons/chemistry_1.png</normaloff>../resources/icons/chemistry_1.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="acceptDrops">
@@ -104,7 +104,7 @@
   <action name="action_en">
    <property name="icon">
     <iconset>
-     <normaloff>../icons/us.png</normaloff>../icons/us.png</iconset>
+     <normaloff>../resources/icons/us.png</normaloff>../resources/icons/us.png</iconset>
    </property>
    <property name="text">
     <string>English</string>
@@ -113,7 +113,7 @@
   <action name="action_de">
    <property name="icon">
     <iconset>
-     <normaloff>../icons/de.png</normaloff>../icons/de.png</iconset>
+     <normaloff>../resources/icons/de.png</normaloff>../resources/icons/de.png</iconset>
    </property>
    <property name="text">
     <string>Deutsch</string>
@@ -122,7 +122,7 @@
   <action name="action_pl">
    <property name="icon">
     <iconset>
-     <normaloff>../icons/pl.png</normaloff>../icons/pl.png</iconset>
+     <normaloff>../resources/icons/pl.png</normaloff>../resources/icons/pl.png</iconset>
    </property>
    <property name="text">
     <string>Polski</string>
@@ -153,19 +153,19 @@
   <customwidget>
    <class>WidgetNavigation</class>
    <extends>QWidget</extends>
-   <header>widgets</header>
+   <header>widgets.navigation</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>WidgetCAC</class>
    <extends>QWidget</extends>
-   <header>widgets</header>
+   <header>widgets.cac</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>WidgetData</class>
    <extends>QWidget</extends>
-   <header>widgets</header>
+   <header>widgets.data</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
