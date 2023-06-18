@@ -1,4 +1,5 @@
 from utils import *
+from containers.graph_options import GraphOptions
 
 class GraphOptionsWorker(QObject):
     emit_go = Signal(GraphOptions)

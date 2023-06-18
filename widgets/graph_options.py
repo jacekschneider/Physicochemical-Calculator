@@ -1,4 +1,6 @@
 from utils import *
+from containers.graph_options import GraphOptions
+
 
 class WidgetGraphOptions(QWidget):
     emit_go = Signal(GraphOptions)

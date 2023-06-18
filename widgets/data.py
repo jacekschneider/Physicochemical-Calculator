@@ -1,4 +1,6 @@
 from utils import *
+from containers.measurement import Measurement
+from containers.graph_options import GraphOptions
 
 class WidgetData(QWidget):
     emit_plot = Signal(ImageExporter)

@@ -1,4 +1,6 @@
 from utils import *
+from containers.measurement import Measurement
+
 
 class DataLoaderWorker(QObject):
     emit_measurements = Signal(list)

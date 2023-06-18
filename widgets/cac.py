@@ -1,5 +1,6 @@
 from utils import *
-
+from containers.rmse import RMSE
+from containers.graph_options import GraphOptions
 
 class WidgetCAC(QWidget):
     emit_plot = Signal(ImageExporter)

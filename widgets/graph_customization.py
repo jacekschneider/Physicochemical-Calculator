@@ -1,4 +1,5 @@
 from utils import *
+from containers.measurement import Measurement
 
 
 class SettingsRow(QObject):
