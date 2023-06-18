@@ -16,7 +16,7 @@ class WidgetNavigation(QWidget):
     emit_dirpath = Signal(str)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        loadUi("UI/ui_navigation.ui", self)
+        loadUi("ui/ui_navigation.ui", self)
         self.pb_load_data.clicked.connect(self.open_file_dialog)
         
         # view_files widget
@@ -63,7 +63,7 @@ class WidgetCAC(QWidget):
     emit_plot = Signal(ImageExporter)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        loadUi("UI/ui_cac.ui", self)
+        loadUi("ui/ui_cac.ui", self)
         
         self.items_plot = []
         self.items_text = []
@@ -169,7 +169,7 @@ class WidgetData(QWidget):
     emit_plot = Signal(ImageExporter)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        loadUi("UI/ui_data.ui", self)
+        loadUi("ui/ui_data.ui", self)
         
         self.measurements:list[Measurement] = []
         #Graph Items
@@ -511,7 +511,7 @@ class WidgetGraphCustomization(QWidget):
     
     def __init__(self, measurements_default:list, measurements:list, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        loadUi("UI/ui_settings_graph_data.ui", self)
+        loadUi("ui/ui_settings_graph_data.ui", self)
         
         self.measurements_default:list[Measurement] = measurements_default
         self.measurements_raw:list[Measurement] = measurements
@@ -610,7 +610,7 @@ class WidgetGraphOptions(QWidget):
     emit_go = Signal(GraphOptions)
     def __init__(self, go_cac, go_data, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        loadUi("UI/ui_settings_graph_options.ui", self)
+        loadUi("ui/ui_settings_graph_options.ui", self)
 
         self.go_cac = go_cac
         self.go_data = go_data

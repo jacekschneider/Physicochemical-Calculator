@@ -10,6 +10,23 @@ from sklearn.linear_model import LinearRegression ## pip install numpy scikit-le
 from math import log10
 from dataclasses import dataclass, field
 from PyQt6.QtGui import  QFileSystemModel
+import typing
+import numpy as np
+import pandas as pd
+import os
+import copy
+import re
+from math import log10
+from pathlib import Path
+from multipledispatch import dispatch
+from PyQt6.QtWidgets import QFileDialog
+from PyQt6.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QObject
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib.pagesizes import A4
+from sklearn.linear_model import LinearRegression
+from tempfile import NamedTemporaryFile
+from pyqtgraph.exporters import ImageExporter
+
 
 symbols = ["o", "t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d", "x"]
 

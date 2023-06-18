@@ -2,20 +2,24 @@ import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6.uic.load_ui import loadUi
 from PyQt6.QtCore import QTranslator, QCoreApplication
-from workers import ReportWorker, SettingsWorker, CalculatorWorker, ExportWorker, GraphOptionsWorker
+from workers.calculator import CalculatorWorker
+from workers.data_loader import DataLoaderWorker
+from workers.exporter import ExportWorker
+from workers.graph_options import GraphOptionsWorker
+from workers.report_generator import ReportGeneratorWorker
 from widgets import WidgetGraphCustomization, WidgetGraphOptions
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        loadUi("UI/ui_main.ui", self)
+        loadUi("ui/ui_main.ui", self)
         
         self.trl = QTranslator()
         QCoreApplication.installTranslator(self.trl)
 
         # Workers
-        self.report_worker = ReportWorker()
-        self.settings_worker = SettingsWorker()
+        self.report_worker = ReportGeneratorWorker()
+        self.settings_worker = DataLoaderWorker()
         self.calculator_worker = CalculatorWorker()
         self.export_worker = ExportWorker()
         self.go_worker = GraphOptionsWorker()
