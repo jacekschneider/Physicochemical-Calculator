@@ -1,44 +1,75 @@
-import numpy as np
-import pandas as pd
-import pyqtgraph as pg
+# import numpy as np
+# import pandas as pd
+# import pyqtgraph as pg
+# import re
+# import colorsys
+# from multipledispatch import dispatch
+# from PyQt6.QtCore import QCoreApplication, QSortFilterProxyModel
+# from pathlib import Path
+# from sklearn.linear_model import LinearRegression ## pip install numpy scikit-learn statsmodels
+# from math import log10
+# from dataclasses import dataclass, field
+# from PyQt6.QtGui import  QFileSystemModel
+# import typing
+# import numpy as np
+# import pandas as pd
+# import os
+# import copy
+# import re
+# from math import log10
+# from pathlib import Path
+# from multipledispatch import dispatch
+# from PyQt6.QtWidgets import QFileDialog
+# from PyQt6.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QObject
+# from reportlab.pdfgen.canvas import Canvas
+# from reportlab.lib.pagesizes import A4
+# from sklearn.linear_model import LinearRegression
+# from tempfile import NamedTemporaryFile
+# from pyqtgraph.exporters import ImageExporter
+
+# from PyQt6 import QtGui
+# import numpy as np
+# import pyqtgraph as pg
+# import pathlib
+# import copy
+# from multipledispatch import dispatch
+# from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox, QComboBox, QColorDialog, QPushButton, QListView
+# from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject
+# from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator, QColor
+# from PyQt6.uic.load_ui import loadUi
+# 
+
+# import sys
+# from PyQt6.QtWidgets import QApplication, QMainWindow
+# from PyQt6.uic.load_ui import loadUi
+# from PyQt6.QtCore import QTranslator, QCoreApplication
+
+import sys
 import re
-import colorsys
-from multipledispatch import dispatch
-from PyQt6.QtCore import QCoreApplication, QSortFilterProxyModel
-from pathlib import Path
-from sklearn.linear_model import LinearRegression ## pip install numpy scikit-learn statsmodels
-from math import log10
-from dataclasses import dataclass, field
-from PyQt6.QtGui import  QFileSystemModel
-import typing
-import numpy as np
-import pandas as pd
 import os
 import copy
-import re
-from math import log10
-from pathlib import Path
+import pathlib
+import colorsys
+import pandas as pd
+import numpy as np
+import pyqtgraph as pg
+
+from dataclasses import dataclass, field
 from multipledispatch import dispatch
-from PyQt6.QtWidgets import QFileDialog
-from PyQt6.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QObject
+from sklearn.linear_model import LinearRegression
+from pathlib import Path
+from math import log10
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
-from sklearn.linear_model import LinearRegression
 from tempfile import NamedTemporaryFile
 from pyqtgraph.exporters import ImageExporter
 
-from PyQt6 import QtGui
-import numpy as np
-import pyqtgraph as pg
-import pathlib
-import copy
-from multipledispatch import dispatch
-from PyQt6.QtWidgets import QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox, QComboBox, QColorDialog, QPushButton, QListView
-from PyQt6.QtCore import pyqtSignal as Signal, QDir, QObject
-from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator, QColor
+from PyQt6.QtWidgets import (QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox,
+                             QComboBox, QColorDialog, QPushButton, QListView, QMainWindow, QApplication)
+from PyQt6.QtCore import QCoreApplication, QSortFilterProxyModel, QObject, pyqtSignal as Signal, pyqtSlot as Slot, QTranslator, QDir
 from PyQt6.uic.load_ui import loadUi
 from pyqtgraph.exporters import ImageExporter
-
+from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator
 
 symbols = ["o", "t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d", "x"]
 
