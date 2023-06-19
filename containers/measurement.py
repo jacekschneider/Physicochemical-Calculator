@@ -8,6 +8,8 @@ class Measurement():
     path : str
     encoding : str = 'UTF-16'
     separator : str = ','
+    index_column_start : int = 1
+    index_column_step : int = 2
     filename : str = field(init=False)
     concentration : float = field(init=False)
     data : pd.Series = field(init=False)
@@ -47,7 +49,7 @@ class Measurement():
         Yval = raw[raw.columns[raw.columns.str.startswith('Y')]]
         # filtering out Y values, excluding every other column because of bad data
         # may heve to be removed
-        Yval = Yval[Yval.columns[1::2]]
+        Yval = Yval[Yval.columns[self.index_column_start::self.index_column_step]]
         Yval = Yval.mean(axis=1)
         Xval = raw['X']
         data = pd.concat([Xval,Yval],axis=1, keys=['X','Y'])
