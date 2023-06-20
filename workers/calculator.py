@@ -5,6 +5,9 @@ from containers.rmse import RMSE
 class CalculatorWorker(QObject):
     emit_I1I3 = Signal(pd.DataFrame)
     emit_RMSE = Signal(RMSE)
+    emit_models = Signal(tuple)
+    emit_model_fit = Signal(dict)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.measurements:list[Measurement] = []
@@ -18,6 +21,9 @@ class CalculatorWorker(QObject):
         cac_data = self.__calculate_cac(model1, model2)
         rmse_data = RMSE(regression_data, RMSEval, cac_data)
         self.emit_RMSE.emit(rmse_data)
+        # for report generation
+        self.emit_models.emit((model1, model2)) 
+        self.emit_model_fit.emit({"R2" : model_data.loc[R2val, "R2"], "RMSE" : model_data.loc[RMSEval, "RMSE"]})
 
     def __prepare_regression_data(self)->pd.DataFrame:
         concentrations: list[float] = [log10(measurement.concentration) for measurement in self.measurements if measurement.enabled]

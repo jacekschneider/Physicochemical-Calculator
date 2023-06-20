@@ -21,7 +21,9 @@ class WidgetData(QWidget):
         self.cb_measurements.clear()
         self.cb_measurements.addItem('*')
         self.cb_measurements.addItems([measurement.name.split('= ')[-1] for measurement in self.measurements])
-        self.draw()     
+        self.draw()
+        imx = ImageExporter(self.graph.scene())
+        self.emit_plot.emit(imx)  
         
     @dispatch(Measurement, bool)                  
     def draw(self, measurement:Measurement, enable_peaks:bool=False):
