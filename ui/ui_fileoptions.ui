@@ -219,7 +219,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_7">
      <item>
-      <widget class="QCheckBox" name="checkBox">
+      <widget class="QCheckBox" name="cb_average">
        <property name="layoutDirection">
         <enum>Qt::RightToLeft</enum>
        </property>

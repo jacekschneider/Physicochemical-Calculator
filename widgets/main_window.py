@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
         
     def show_fileoptions(self):
         self.widget_fo = WidgetFileOptions()
+        self.widget_fo.emit_average.connect(self.calculator_worker.set_average)
         self.widget_fo.show()
         
     def set_de(self):

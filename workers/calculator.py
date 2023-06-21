@@ -8,9 +8,22 @@ class CalculatorWorker(QObject):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.measurements:list[Measurement] = []
+        
+        self.average_measurements = False
 
     def load(self, measurements:list):
-        self.measurements = measurements
+        if not self.average_measurements:
+            self.measurements = measurements
+        # else:
+        #     # find unique measuruements (concentration is always different)
+        #     measurements_index_checked = []
+        #     for (index, measurement) in enumerate(measurements):
+        #         for (index_in, measurement_in) in enumerate(measurements):
+        #             sum_peak1 = 0
+        #             if measurement_in.concentration == measurement.concentration:
+        #                 measurements_index_checked.append(index_in)
+        #                 sum_concentration += measurement_in.concentration
+        #             average = sum_concentration/
         regression_data = self.__prepare_regression_data()
         model_data = self.__prepare_models(regdata=regression_data)
         R2val, RMSEval = self.__define_best(model_data=model_data)
@@ -19,6 +32,9 @@ class CalculatorWorker(QObject):
         rmse_data = RMSE(regression_data, RMSEval, cac_data)
         self.emit_RMSE.emit(rmse_data)
 
+    def set_average(self, value:bool):
+        self.average_measurements = value
+        
     def __prepare_regression_data(self)->pd.DataFrame:
         concentrations: list[float] = [log10(measurement.concentration) for measurement in self.measurements if measurement.enabled]
         relatives:list[float] = [float(measurement.peaks["Peak 1"]/measurement.peaks["Peak 2"]) for measurement in self.measurements if measurement.enabled]
@@ -29,10 +45,16 @@ class CalculatorWorker(QObject):
         I1I3["I3"] = [float(measurement.peaks["Peak 2"]) for measurement in self.measurements if measurement.enabled]
         I1I3["concentration"] = [measurement.concentration for measurement in self.measurements if measurement.enabled]
         I1I3.set_index("concentration(log)", inplace=True)
+        if  self.average_measurements:
+            I1I3.index = I1I3.index.map(lambda x: math.ceil(x * 100) / 100)
+            I1I3 = I1I3.groupby("concentration(log)").mean()
         self.emit_I1I3.emit(I1I3)
         
         regression_data = pd.DataFrame({'Y': relatives,'X': concentrations})
         regression_data.sort_values('X', inplace=True)
+        if  self.average_measurements:
+            regression_data.X = regression_data.X.map(lambda x: math.ceil(x * 100) / 100)
+            regression_data = regression_data.groupby("X", as_index=False)["Y"].mean()
         return regression_data.T
     
     def __prepare_models(self, regdata:pd.DataFrame)->pd.DataFrame:
