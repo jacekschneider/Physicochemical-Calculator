@@ -45,7 +45,6 @@ class CalculatorWorker(QObject):
         if  self.average_measurements:
             regression_data.X = regression_data.X.map(lambda x: math.ceil(x * 10) / 10)
             regression_data = regression_data.groupby("X", as_index=False)["Y"].mean()
-        print(regression_data)
         return regression_data.T
     
     def __prepare_models(self, regdata:pd.DataFrame)->pd.DataFrame:

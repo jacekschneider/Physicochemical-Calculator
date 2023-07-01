@@ -6,12 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>210</width>
+    <width>260</width>
     <height>276</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>File Options</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../resources/icons/icon_settings.png</normaloff>../resources/icons/icon_settings.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -172,6 +176,9 @@
      </item>
      <item>
       <widget class="QSpinBox" name="sb_indexstep">
+       <property name="minimum">
+        <number>1</number>
+       </property>
        <property name="value">
         <number>2</number>
        </property>
@@ -224,7 +231,7 @@
         <enum>Qt::RightToLeft</enum>
        </property>
        <property name="text">
-        <string>Average</string>
+        <string>Calculate Average</string>
        </property>
       </widget>
      </item>

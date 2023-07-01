@@ -45,7 +45,7 @@ class Measurement():
         con = re.findall('\d+(?:\.\d+)?', filename)[-1] # extracts floats and integers
         concentration= float(con)
 
-        raw = pd.read_csv(self.path, encoding=self.encoding, sep=self.separator)
+        raw = pd.read_csv(self.path, encoding=self.encoding, sep=self.separator, engine='python')
         Yval = raw[raw.columns[raw.columns.str.startswith('Y')]]
         # filtering out Y values, excluding every other column because of bad data
         # may heve to be removed

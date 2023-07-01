@@ -4,6 +4,7 @@ from workers.data_loader import DataLoaderWorker
 from workers.exporter import ExportWorker
 from workers.graph_options import GraphOptionsWorker
 from workers.report_generator import ReportGeneratorWorker
+from workers.file_options import FileOptionsWorker
 from widgets.graph_customization import WidgetGraphCustomization
 from widgets.graph_options import WidgetGraphOptions
 from widgets.file_options import WidgetFileOptions
@@ -23,6 +24,7 @@ class MainWindow(QMainWindow):
         self.calculator_worker = CalculatorWorker()
         self.export_worker = ExportWorker()
         self.go_worker = GraphOptionsWorker()
+        self.fo_worker = FileOptionsWorker()
 
         self.reinit()
         self.show()
@@ -48,6 +50,8 @@ class MainWindow(QMainWindow):
         self.widget_cac.pb_export.clicked.connect(self.export_worker.export_I1I3)
         self.go_worker.emit_go.connect(self.widget_data.update)
         self.go_worker.emit_go.connect(self.widget_cac.update)
+        self.fo_worker.emit_fo.connect(self.settings_worker.load)
+        self.fo_worker.emit_avg.connect(self.calculator_worker.set_average)
         
     def show_customization(self):
         self.widget_customization = WidgetGraphCustomization(self.settings_worker.get_measurements_raw(), self.settings_worker.get_measurements())
@@ -60,8 +64,8 @@ class MainWindow(QMainWindow):
         self.widget_go.show()
         
     def show_fileoptions(self):
-        self.widget_fo = WidgetFileOptions()
-        self.widget_fo.emit_average.connect(self.calculator_worker.set_average)
+        self.widget_fo = WidgetFileOptions(fo=self.fo_worker.Fo())
+        self.widget_fo.emit_fo.connect(self.fo_worker.load)
         self.widget_fo.show()
         
     def set_de(self):
