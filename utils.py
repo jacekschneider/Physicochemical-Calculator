@@ -77,8 +77,8 @@ class reSortProxyModel(QSortFilterProxyModel):
         left_data = self.sourceModel().data(left)
         right_data = self.sourceModel().data(right)
         try:
-            left_value = float(re.findall('\d+(?:\.\d+)?', left_data.replace(',', '.'))[-1])
-            right_value = float(re.findall('\d+(?:\.\d+)?', right_data.replace(',', '.'))[-1])
+            left_value = float(re.findall(self.expr, left_data.replace(',', '.'))[-1])
+            right_value = float(re.findall(self.expr, right_data.replace(',', '.'))[-1])
         except IndexError:
             return False
         return left_value < right_value
