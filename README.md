@@ -16,3 +16,6 @@ Project consists of some advanced and complex Qt features:
 
 Feel free to use them in Your own projects.<br />
 
+![](https://github.com/jacekschneider/Physicochemical-Calculator/blob/main/resources/img/data.png)
+
+![](https://github.com/jacekschneider/Physicochemical-Calculator/blob/main/resources/img/cmc.png)
