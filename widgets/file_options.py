@@ -31,4 +31,5 @@ class WidgetFileOptions(QWidget):
         self.fo.index_column_step = self.sb_indexstep.value()
         self.fo.average = self.cb_average.isChecked()
         self.emit_fo.emit(self.fo)
+        print("File options applied")
         self.close()

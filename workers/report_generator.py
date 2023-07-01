@@ -113,3 +113,4 @@ class ReportGeneratorWorker(QObject):
         # otherwise multiple report generation using
         # the same instance of the class would start the text generation lower
         self.offset = -55 
+        print("Report generated")

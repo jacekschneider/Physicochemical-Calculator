@@ -8,6 +8,7 @@ import colorsys
 import pandas as pd
 import numpy as np
 import pyqtgraph as pg
+from datetime import datetime
 
 from dataclasses import dataclass, field
 from multipledispatch import dispatch
@@ -20,11 +21,11 @@ from tempfile import NamedTemporaryFile
 from pyqtgraph.exporters import ImageExporter
 
 from PyQt6.QtWidgets import (QWidget, QFileDialog, QFileIconProvider, QLineEdit, QCheckBox,
-                             QComboBox, QColorDialog, QPushButton, QListView, QMainWindow, QApplication)
+                             QComboBox, QColorDialog, QPushButton, QListView, QMainWindow, QApplication, QTextEdit, QVBoxLayout)
 from PyQt6.QtCore import QCoreApplication, QSortFilterProxyModel, QObject, pyqtSignal as Signal, pyqtSlot as Slot, QTranslator, QDir
 from PyQt6.uic.load_ui import loadUi
 from pyqtgraph.exporters import ImageExporter
-from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator
+from PyQt6.QtGui import  QFileSystemModel, QStandardItemModel, QStandardItem, QIntValidator, QValidator, QTextCursor
 
 
 symbols = ["o", "t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d", "x"]

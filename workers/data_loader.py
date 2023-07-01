@@ -28,6 +28,7 @@ class DataLoaderWorker(QObject):
             self.measurements_raw.append(measurement)
             self.measurements_edited = copy.deepcopy(self.measurements_raw)
         self.emit_measurements.emit(self.measurements_edited)
+        print("Data loaded successfully")
         
     @dispatch(list)
     def load(self, measurements:list):

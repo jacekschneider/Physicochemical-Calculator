@@ -267,6 +267,7 @@ class WidgetGraphCustomization(QWidget):
         for row in self.settings_rows:
             measurements_list.append(row.get_measurement())
         self.emit_measurements.emit(measurements_list)
+        print("Graph Customization applied")
         self.close()
     
     def update_column(self, uinfo:list):

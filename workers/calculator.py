@@ -27,6 +27,7 @@ class CalculatorWorker(QObject):
         # for report generation
         self.emit_models.emit((model1, model2)) 
         self.emit_model_fit.emit({"R2" : model_data.loc[R2val, "R2"], "RMSE" : model_data.loc[RMSEval, "RMSE"]})
+        print("CMC calculated")
 
     def set_average(self, value:bool):
         self.average_measurements = value

@@ -52,4 +52,5 @@ class WidgetGraphOptions(QWidget):
         self.go.title = self.le_title.text()
         self.go.title_size = self.sb_titlefontsize.value()
         self.emit_go.emit(self.go)
+        print("Graph Options applied")
         self.close()

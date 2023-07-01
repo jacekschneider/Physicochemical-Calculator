@@ -28,6 +28,7 @@ class WidgetNavigation(QWidget):
             directory=str(pathlib.Path().absolute())
         )
         if path_folder != "":
+            print("Loading Data...")
             self.emit_dirpath.emit(path_folder)
             self.le_path.setText(path_folder)
             self.view_files.setModel(self.proxy_model)
