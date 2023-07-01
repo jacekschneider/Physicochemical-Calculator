@@ -1,5 +1,6 @@
 from utils import *
 from containers.measurement import Measurement
+from containers.file_options import FileOptions
 
 
 class DataLoaderWorker(QObject):
@@ -8,6 +9,11 @@ class DataLoaderWorker(QObject):
         super().__init__(*args, **kwargs)
         self.measurements_raw:list[Measurement] = []
         self.measurements_edited:list[Measurement] = []
+        self.fo:FileOptions = FileOptions(separator=r'\t')
+    
+    @dispatch(FileOptions)
+    def load(self, fo:FileOptions):
+        self.fo = fo
     
     @dispatch(str)
     def load(self, dirpath:str):
@@ -17,7 +23,8 @@ class DataLoaderWorker(QObject):
         unsorted_values = [float(re.findall('\d+(?:\.\d+)?', filename.replace(',', '.'))[-1]) for filename in files]
         sorted_files = [filename for _, filename in sorted(zip(unsorted_values, files), reverse=True)]
         for file in sorted_files:
-            measurement = Measurement(path=file, encoding="utf-16", separator="\t")
+            measurement = Measurement(path=file, encoding=self.fo.encoding, separator=self.fo.separator,
+                                      index_column_start=self.fo.index_column_start, index_column_step=self.fo.index_column_step)
             self.measurements_raw.append(measurement)
             self.measurements_edited = copy.deepcopy(self.measurements_raw)
         self.emit_measurements.emit(self.measurements_edited)

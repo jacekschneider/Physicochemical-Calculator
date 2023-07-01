@@ -94,6 +94,7 @@
     </property>
     <addaction name="action_graph_customization"/>
     <addaction name="action_graph_options"/>
+    <addaction name="action_file_options"/>
    </widget>
    <addaction name="menuLanguages"/>
    <addaction name="menuReport"/>
@@ -146,6 +147,11 @@
   <action name="action_graph_options">
    <property name="text">
     <string>Graph Options...</string>
+   </property>
+  </action>
+  <action name="action_file_options">
+   <property name="text">
+    <string>File Options...</string>
    </property>
   </action>
  </widget>
